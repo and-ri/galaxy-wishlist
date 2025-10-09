@@ -29,7 +29,7 @@
 
     <div class="bg-white rounded-2xl shadow-xl p-8 text-center hover:shadow-2xl transition-shadow duration-300 transform hover:-translate-y-2">
         <div class="text-6xl mb-4">👥</div>
-        <h3 class="text-2xl font-bold text-purple-600 mb-3">Діліться з друзями</h3>
+        <h3 class="text-2xl font-bold text-purple-600 mb-3">Діліться з колегами</h3>
         <p class="text-gray-600 leading-relaxed">Переглядайте бажання інших користувачів і дізнавайтеся, що їм подарувати</p>
     </div>
 

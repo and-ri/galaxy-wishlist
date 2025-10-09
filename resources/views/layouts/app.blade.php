@@ -46,7 +46,7 @@
     </nav>
 
     <!-- Content -->
-    <main class="container mx-auto px-4 py-8">
+    <main class="container mx-auto px-4 py-8 min-h-[calc(100vh-160px)]">
         <!-- Flash Messages -->
         @if (session('success'))
             <div class="mb-6 bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg shadow-md flex items-center space-x-2">
