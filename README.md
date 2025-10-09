@@ -1,11 +1,197 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🌌 Galaxy Wishlist
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Веб-додаток для створення та обміну списками бажань з можливістю SSO авторизації через Authentik.
+
+## ✨ Функціонал
+
+- 🔐 SSO авторизація через Authentik (goauthentik.io)
+- 🎁 Створення та управління власними бажаннями
+- 🖼️ Завантаження аватарів користувачів
+- 👥 Перегляд інших користувачів
+- 👀 Перегляд бажань інших користувачів
+- 🇺🇦 Українська локалізація
+- 🔒 Локальний вхід для адміністратора (для розробки)
+
+## 🚀 Встановлення
+
+### Вимоги
+
+- PHP 8.2+
+- Composer
+- SQLite або інша база даних
+
+### Крок 1: Клонування та встановлення залежностей
+
+```bash
+git clone <ваш-репозиторій>
+cd galaxy-wishlist
+composer install
+npm install
+```
+
+### Крок 2: Налаштування оточення
+
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+Відредагуйте `.env` файл:
+
+```env
+APP_NAME="Galaxy Wishlist"
+APP_URL=http://localhost:8000
+
+# Authentik Configuration
+AUTHENTIK_BASE_URL=https://your-authentik-domain.com
+AUTHENTIK_CLIENT_ID=your_client_id
+AUTHENTIK_CLIENT_SECRET=your_client_secret
+AUTHENTIK_REDIRECT_URI=http://localhost:8000/auth/authentik/callback
+```
+
+### Крок 3: База даних
+
+```bash
+touch database/database.sqlite
+php artisan migrate
+php artisan db:seed --class=AdminUserSeeder
+```
+
+### Крок 4: Storage
+
+```bash
+php artisan storage:link
+```
+
+### Крок 5: Запуск
+
+```bash
+php artisan serve
+npm run dev
+```
+
+Відкрийте браузер: `http://localhost:8000`
+
+## 🔑 Локальний вхід (для розробки)
+
+Для локального тестування без Authentik:
+
+- URL: `/admin/login`
+- Email: `admin@example.com`
+- Password: `password`
+
+## 🔧 Налаштування Authentik
+
+### 1. Створіть Provider в Authentik
+
+1. Перейдіть в Admin Interface → Applications → Providers
+2. Створіть новий **OAuth2/OpenID Provider**
+3. Налаштування:
+   - **Name**: Galaxy Wishlist
+   - **Authorization flow**: default-provider-authorization-implicit-consent
+   - **Client type**: Confidential
+   - **Redirect URIs**: `http://localhost:8000/auth/authentik/callback`
+   - **Signing Key**: виберіть будь-який сертифікат
+
+4. Збережіть та скопіюйте:
+   - Client ID
+   - Client Secret
+
+### 2. Створіть Application
+
+1. Applications → Create
+2. Налаштування:
+   - **Name**: Galaxy Wishlist
+   - **Slug**: galaxy-wishlist
+   - **Provider**: виберіть створений Provider
+   - **Launch URL**: `http://localhost:8000`
+
+### 3. Оновіть .env
+
+Додайте отримані дані в `.env`:
+
+```env
+AUTHENTIK_BASE_URL=https://your-authentik-domain.com
+AUTHENTIK_CLIENT_ID=<client_id_from_provider>
+AUTHENTIK_CLIENT_SECRET=<client_secret_from_provider>
+AUTHENTIK_REDIRECT_URI=http://localhost:8000/auth/authentik/callback
+```
+
+## 📁 Структура проекту
+
+```
+app/
+├── Http/Controllers/
+│   ├── AuthController.php       # Авторизація
+│   ├── WishController.php       # CRUD для бажань
+│   ├── ProfileController.php    # Профіль користувача
+│   └── UserController.php       # Список користувачів
+├── Models/
+│   ├── User.php                 # Модель користувача
+│   └── Wish.php                 # Модель бажання
+├── Policies/
+│   └── WishPolicy.php           # Політики доступу
+└── Providers/
+    ├── AppServiceProvider.php   # Реєстрація Authentik provider
+    └── AuthentikProvider.php    # Custom Socialite provider
+
+resources/
+├── views/
+│   ├── auth/                    # Сторінки авторизації
+│   ├── wishes/                  # CRUD сторінки бажань
+│   ├── users/                   # Сторінки користувачів
+│   ├── profile/                 # Редагування профілю
+│   └── layouts/app.blade.php    # Основний layout
+└── lang/uk/                     # Українська локалізація
+
+database/
+├── migrations/                  # Міграції БД
+└── seeders/
+    └── AdminUserSeeder.php      # Створення адмін користувача
+```
+
+## 🛠️ Розробка
+
+### Створення нового користувача
+
+```bash
+php artisan tinker
+```
+
+```php
+User::create([
+    'name' => 'Ім\'я',
+    'email' => 'email@example.com',
+    'password' => Hash::make('password'),
+    'is_admin' => false,
+]);
+```
+
+### Очистка кешу
+
+```bash
+php artisan cache:clear
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
+```
+
+## 📝 Технології
+
+- **Backend**: Laravel 11
+- **Frontend**: Blade Templates, Vanilla CSS
+- **Database**: SQLite (за замовчуванням)
+- **Auth**: Laravel Socialite + Custom Authentik Provider
+- **Localization**: Українська мова
+
+## 🤝 Внесок
+
+Якщо ви знайшли помилку або маєте пропозицію - створіть Issue або Pull Request!
+
+## 📄 Ліцензія
+
+MIT License
+
 
 ## About Laravel
 

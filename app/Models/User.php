@@ -21,6 +21,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'avatar',
+        'authentik_id',
+        'is_admin',
     ];
 
     /**
@@ -43,6 +46,15 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_admin' => 'boolean',
         ];
+    }
+
+    /**
+     * Get the wishes for the user.
+     */
+    public function wishes()
+    {
+        return $this->hasMany(Wish::class);
     }
 }
