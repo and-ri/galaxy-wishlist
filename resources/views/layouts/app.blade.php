@@ -10,18 +10,26 @@
 <body class="bg-gradient-to-br from-purple-50 via-white to-pink-50 min-h-screen">
     <!-- Navigation -->
     <nav class="bg-gradient-to-r from-purple-900 via-purple-800 to-indigo-900 text-white shadow-lg">
-        <div class="container mx-auto px-4 py-4">
+        <div class="container mx-auto px-4 py-3">
             <div class="flex justify-between items-center">
                 <a href="{{ route('home') }}" class="flex items-center space-x-2">
-                    <span class="text-3xl">🌌</span>
-                    <h1 class="text-2xl font-bold">{{ config('app.name') }}</h1>
+                    <span class="text-2xl md:text-3xl">🌌</span>
+                    <h1 class="text-lg md:text-2xl font-bold">{{ config('app.name') }}</h1>
                 </a>
                 
-                <ul class="flex items-center space-x-6">
+                <!-- Mobile menu button -->
+                <button id="mobile-menu-button" class="md:hidden p-2 rounded-lg hover:bg-purple-700 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+                
+                <!-- Desktop menu -->
+                <ul class="hidden md:flex items-center space-x-4 lg:space-x-6">
                     @auth
-                        <li><a href="{{ route('wishes.index') }}" class="hover:text-purple-200 transition duration-200">{{ __('wishlist.my_wishes') }}</a></li>
-                        <li><a href="{{ route('users.index') }}" class="hover:text-purple-200 transition duration-200">{{ __('wishlist.all_users') }}</a></li>
-                        <li><a href="{{ route('profile.edit') }}" class="hover:text-purple-200 transition duration-200 flex items-center space-x-2">
+                        <li><a href="{{ route('wishes.index') }}" class="hover:text-purple-200 transition duration-200 text-sm lg:text-base">{{ __('wishlist.my_wishes') }}</a></li>
+                        <li><a href="{{ route('users.index') }}" class="hover:text-purple-200 transition duration-200 text-sm lg:text-base">{{ __('wishlist.all_users') }}</a></li>
+                        <li><a href="{{ route('profile.edit') }}" class="hover:text-purple-200 transition duration-200 flex items-center space-x-2 text-sm lg:text-base">
                             @if(auth()->user()->avatar)
                                 <img src="{{ asset('storage/' . auth()->user()->avatar) }}" alt="{{ auth()->user()->name }}" class="w-8 h-8 rounded-full">
                             @else
@@ -29,21 +37,43 @@
                                     {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                                 </div>
                             @endif
-                            <span>{{ __('wishlist.profile') }}</span>
+                            <span class="hidden lg:inline">{{ __('wishlist.profile') }}</span>
                         </a></li>
                         <li>
                             <form action="{{ route('logout') }}" method="POST">
                                 @csrf
-                                <button type="submit" class="px-4 py-2 bg-purple-700 hover:bg-purple-600 rounded-lg transition duration-200">{{ __('auth.logout') }}</button>
+                                <button type="submit" class="px-3 py-2 lg:px-4 bg-purple-700 hover:bg-purple-600 rounded-lg transition duration-200 text-sm lg:text-base">{{ __('auth.logout') }}</button>
                             </form>
                         </li>
                     @else
-                        <li><a href="{{ route('login') }}" class="px-4 py-2 bg-purple-700 hover:bg-purple-600 rounded-lg transition duration-200">{{ __('auth.login') }}</a></li>
+                        <li><a href="{{ route('login') }}" class="px-3 py-2 lg:px-4 bg-purple-700 hover:bg-purple-600 rounded-lg transition duration-200 text-sm lg:text-base">{{ __('auth.login') }}</a></li>
                     @endauth
                 </ul>
             </div>
+            
+            <!-- Mobile menu -->
+            <div id="mobile-menu" class="hidden md:hidden mt-4 pb-4 space-y-3">
+                @auth
+                    <a href="{{ route('wishes.index') }}" class="block px-4 py-2 hover:bg-purple-700 rounded-lg transition">{{ __('wishlist.my_wishes') }}</a>
+                    <a href="{{ route('users.index') }}" class="block px-4 py-2 hover:bg-purple-700 rounded-lg transition">{{ __('wishlist.all_users') }}</a>
+                    <a href="{{ route('profile.edit') }}" class="block px-4 py-2 hover:bg-purple-700 rounded-lg transition">{{ __('wishlist.profile') }}</a>
+                    <form action="{{ route('logout') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="w-full text-left px-4 py-2 hover:bg-purple-700 rounded-lg transition">{{ __('auth.logout') }}</button>
+                    </form>
+                @else
+                    <a href="{{ route('login') }}" class="block px-4 py-2 hover:bg-purple-700 rounded-lg transition text-center">{{ __('auth.login') }}</a>
+                @endauth
+            </div>
         </div>
     </nav>
+    
+    <script>
+        document.getElementById('mobile-menu-button')?.addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+    </script>
 
     <!-- Content -->
     <main class="container mx-auto px-4 py-8 min-h-[calc(100vh-160px)]">
