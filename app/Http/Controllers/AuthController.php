@@ -6,6 +6,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
@@ -54,7 +56,16 @@ class AuthController extends Controller
     public function handleAuthentikCallback()
     {
         try {
+            Log::info('=== Authentik Callback Started ===');
+            
             $authentikUser = Socialite::driver('authentik')->user();
+            
+            Log::info('Authentik user data retrieved', [
+                'id' => $authentikUser->getId(),
+                'email' => $authentikUser->getEmail(),
+                'name' => $authentikUser->getName(),
+                'avatar' => $authentikUser->getAvatar(),
+            ]);
             
             $user = User::updateOrCreate(
                 ['authentik_id' => $authentikUser->getId()],
@@ -62,14 +73,31 @@ class AuthController extends Controller
                     'name' => $authentikUser->getName(),
                     'email' => $authentikUser->getEmail(),
                     'avatar' => $authentikUser->getAvatar(),
+                    'password' => Hash::make(Str::random(32)), // Random password для OAuth користувачів
                 ]
             );
 
+            Log::info('User created/updated', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+            ]);
+
             Auth::login($user);
+
+            Log::info('User logged in successfully');
 
             return redirect()->intended('/');
         } catch (\Exception $e) {
-            return redirect('/login')->withErrors(['error' => 'Помилка авторизації через Authentik']);
+            Log::error('Authentik callback error', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            
+            return redirect('/login')->withErrors([
+                'error' => 'Помилка авторизації через Authentik: ' . $e->getMessage()
+            ]);
         }
     }
 
