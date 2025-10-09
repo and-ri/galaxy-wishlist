@@ -1,12 +1,20 @@
-# Galaxy Wishlist - Швидкі команди
+# 📝 Galaxy Wishlist - Швидка довідка команд
 
-## Запуск проекту
+## 🚀 Development
+
+### Запуск локального сервера
 ```bash
-php artisan serve                # Запуск dev-сервера на http://localhost:8000
-npm run dev                      # Запуск Vite (якщо використовуєте)
+# Повний запуск (сервер + queue + logs + vite)
+composer run dev
+
+# Або окремо
+php artisan serve           # Тільки сервер
+npm run dev                 # Тільки Vite
+php artisan queue:work      # Тільки queue
+php artisan pail            # Тільки логи
 ```
 
-## База даних
+### База даних
 ```bash
 php artisan migrate              # Запустити всі міграції
 php artisan migrate:fresh        # Видалити всі таблиці та створити заново

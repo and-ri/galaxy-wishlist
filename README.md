@@ -6,71 +6,67 @@
 
 - 🔐 SSO авторизація через Authentik (goauthentik.io)
 - 🎁 Створення та управління власними бажаннями
-- 🖼️ Завантаження аватарів користувачів
-- 👥 Перегляд інших користувачів
-- 👀 Перегляд бажань інших користувачів
-- 🇺🇦 Українська локалізація
-- 🔒 Локальний вхід для адміністратора (для розробки)
+- 🖼️ Завантаження зображень для бажань
+- 🔗 Автозаповнення даних товару з URL (Open Graph)
+- 👤 Завантаження аватарів користувачів
+- 🎂 Профіль з датою народження та адресою доставки
+- � Перегляд бажань інших користувачів
+- 📱 Повністю адаптивний дизайн (mobile-friendly)
+- � Сучасний дизайн з Tailwind CSS 4.0
+- �🇺🇦 Українська локалізація
+- 🔒 Локальний вхід для адміністратора
 
-## 🚀 Встановлення
+## 🚀 Швидкий старт (Development)
 
 ### Вимоги
 
 - PHP 8.2+
 - Composer
-- SQLite або інша база даних
+- Node.js 18+
+- SQLite (для розробки) або MySQL (для production)
 
-### Крок 1: Клонування та встановлення залежностей
+### Встановлення
 
 ```bash
+# Клонування репозиторію
 git clone <ваш-репозиторій>
 cd galaxy-wishlist
+
+# Встановлення залежностей
 composer install
 npm install
-```
 
-### Крок 2: Налаштування оточення
-
-```bash
+# Налаштування оточення
 cp .env.example .env
 php artisan key:generate
-```
 
-Відредагуйте `.env` файл:
-
-```env
-APP_NAME="Galaxy Wishlist"
-APP_URL=http://localhost:8000
-
-# Authentik Configuration
-AUTHENTIK_BASE_URL=https://your-authentik-domain.com
-AUTHENTIK_CLIENT_ID=your_client_id
-AUTHENTIK_CLIENT_SECRET=your_client_secret
-AUTHENTIK_REDIRECT_URI=http://localhost:8000/auth/authentik/callback
-```
-
-### Крок 3: База даних
-
-```bash
+# База даних
 touch database/database.sqlite
 php artisan migrate
 php artisan db:seed --class=AdminUserSeeder
-```
 
-### Крок 4: Storage
-
-```bash
+# Storage
 php artisan storage:link
-```
 
-### Крок 5: Запуск
-
-```bash
-php artisan serve
-npm run dev
+# Запуск
+composer run dev
 ```
 
 Відкрийте браузер: `http://localhost:8000`
+
+## 📦 Production Deployment
+
+Детальна інструкція з деплою на production сервер з MySQL знаходиться в [DEPLOYMENT.md](DEPLOYMENT.md).
+
+### Швидкий деплой
+
+1. Налаштуйте сервер згідно з [DEPLOYMENT.md](DEPLOYMENT.md)
+2. Відредагуйте `deploy.sh` з вашими credentials
+3. Виконайте: `./deploy.sh`
+
+### Чеклист деплою
+
+Використовуйте [DEPLOY_CHECKLIST.md](DEPLOY_CHECKLIST.md) для перевірки всіх кроків.
 
 ## 🔑 Локальний вхід (для розробки)
 
