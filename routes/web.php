@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WishController;
+use App\Http\Controllers\UrlParserController;
 use Illuminate\Support\Facades\Route;
 
 // Головна сторінка
@@ -26,6 +27,10 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 Route::middleware('auth')->group(function () {
     // Wishes (бажання)
     Route::resource('wishes', WishController::class);
+
+    // URL Parser API
+    Route::post('/api/parse-url', [UrlParserController::class, 'parse'])->name('api.parse-url');
+    Route::post('/api/download-image', [UrlParserController::class, 'downloadImage'])->name('api.download-image');
 
     // Профіль
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

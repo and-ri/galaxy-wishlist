@@ -18,6 +18,7 @@ class Wish extends Model
         'currency',
         'is_purchased',
         'priority',
+        'image',
     ];
 
     protected function casts(): array

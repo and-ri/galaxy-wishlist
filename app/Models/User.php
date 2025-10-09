@@ -24,6 +24,8 @@ class User extends Authenticatable
         'avatar',
         'authentik_id',
         'is_admin',
+        'birthday',
+        'delivery_address',
     ];
 
     /**
@@ -47,6 +49,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
+            'birthday' => 'date',
         ];
     }
 

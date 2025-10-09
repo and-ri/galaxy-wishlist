@@ -61,6 +61,68 @@ php artisan serve
   - Email: admin@example.com
   - Password: password
 
+---
+
+## 🎨 НОВИНКА: Сучасний дизайн та нові функції!
+
+### ✨ Що нового додано:
+
+#### 1. **🎨 Tailwind CSS дизайн**
+- Красивий градієнтний дизайн (фіолетовий → індиго)
+- Сучасні картки з тінями та анімаціями
+- Повністю адаптивний для всіх пристроїв
+- Плавні переходи та hover ефекти
+
+#### 2. **📅 Додаткові поля профілю**
+- **День народження** - друзі побачать коли вас привітати
+- **Адреса доставки** - вкажіть куди надсилати подарунки
+- Оновіть у розділі "Профіль"
+
+#### 3. **🖼️ Фото бажань**
+- Завантажуйте головне фото для кожного бажання
+- Підтримка: JPG, PNG, GIF, WEBP (до 5MB)
+- Автоматичне превʼю зображень
+
+#### 4. **🤖 АВТОЗАПОВНЕННЯ З URL!**
+**Це найкрутіша фіча!** 🚀
+1. Вставте URL товару з інтернет-магазину
+2. Натисніть кнопку "🔍 Автозаповнення"
+3. Система автоматично завантажить:
+   - Назву товару
+   - Опис
+   - Ціну та валюту
+   - Головне фото!
+
+### 🎯 Як використовувати автозаповнення:
+
+**Приклад 1: Додавання нового бажання**
+1. Перейдіть на "➕ Додати бажання"
+2. Знайдіть товар в інтернет-магазині (Rozetka, Amazon, тощо)
+3. Скопіюйте URL товару
+4. Вставте у поле "🔗 Посилання"
+5. Натисніть "🔍 Автозаповнення"
+6. Дочекайтесь 2-3 секунди
+7. Всі поля заповняться автоматично!
+8. Перевірте та збережіть
+
+**Приклад 2: Редагування існуючого бажання**
+- Те ж саме - просто вставте новий URL і натисніть автозаповнення
+- Старі дані замінятся новими
+
+### 📸 Завантаження фото:
+
+**Варіант 1: Автоматично з URL**
+- При автозаповненні фото завантажиться саме
+- Найпростіший спосіб!
+
+**Варіант 2: Вручну**
+1. Натисніть "Вибрати файл" під полем "🖼️ Головне фото"
+2. Виберіть зображення з комп'ютера
+3. Побачите превʼю
+4. Збережіть
+
+---
+
 ## 🔧 Налаштування Authentik (коли готові):
 
 1. **Створіть OAuth2/OpenID Provider** в Authentik:
@@ -94,8 +156,8 @@ AUTHENTIK_REDIRECT_URI=http://localhost:8000/auth/authentik/callback
 Налаштуйте MAIL_* в .env
 
 ### Покращити дизайн:
-- Додайте CSS фреймворк (Bootstrap, Tailwind)
-- Або розширте існуючі inline стилі
+- ✅ **Вже зроблено!** Tailwind CSS з красивим дизайном
+- Всі сторінки оновлені до сучасного вигляду
 
 ### Додати API:
 - Створіть API ресурси для мобільного додатку
@@ -127,26 +189,43 @@ app/
 ├── Http/Controllers/
 │   ├── AuthController.php       # Authentik + локальний вхід
 │   ├── WishController.php       # Бажання (CRUD)
-│   ├── ProfileController.php    # Профіль + аватар
-│   └── UserController.php       # Список користувачів
+│   ├── ProfileController.php    # Профіль + аватар + birthday + delivery_address
+│   ├── UserController.php       # Список користувачів
+│   └── UrlParserController.php  # 🆕 Парсинг URL та завантаження зображень
 ├── Models/
-│   ├── User.php                 # +avatar, authentik_id, is_admin
-│   └── Wish.php                 # title, description, url, price, priority
+│   ├── User.php                 # +avatar, authentik_id, is_admin, birthday, delivery_address
+│   └── Wish.php                 # +image, title, description, url, price, priority
 ├── Policies/
 │   └── WishPolicy.php           # Доступ тільки власнику
 └── Providers/
     └── AuthentikProvider.php    # OAuth2 для Authentik
 
-resources/views/
-├── layouts/app.blade.php        # Основний layout
-├── home.blade.php               # Головна
-├── auth/                        # login, admin-login
-├── wishes/                      # index, create, edit
-├── users/                       # index, show
-└── profile/                     # edit
+resources/
+├── views/
+│   ├── layouts/app.blade.php    # 🆕 Tailwind CSS layout
+│   ├── home.blade.php           # 🆕 Оновлена головна з градієнтами
+│   ├── auth/                    # login, admin-login
+│   ├── wishes/                  # 🆕 Всі з Tailwind + автозаповнення
+│   │   ├── index.blade.php      # Картки з фото
+│   │   ├── create.blade.php     # Форма з автозаповненням
+│   │   └── edit.blade.php       # Форма з автозаповненням
+│   ├── users/                   # 🆕 Оновлені з Tailwind
+│   │   ├── index.blade.php      # Красиві картки користувачів
+│   │   └── show.blade.php       # Сторінка з birthday та delivery_address
+│   └── profile/                 
+│       └── edit.blade.php       # 🆕 З полями birthday та delivery_address
+├── js/
+│   └── app.js                   # 🆕 JavaScript для автозаповнення
+└── css/
+    └── app.css                  # 🆕 Tailwind CSS 4.0
 
 lang/uk/                         # Українські переклади
 ```
+
+## 🎊 Нові API Endpoints:
+
+- `POST /api/parse-url` - Парсинг метаданих з URL товару
+- `POST /api/download-image` - Завантаження зображення з URL
 
 ## ✨ Готово!
 

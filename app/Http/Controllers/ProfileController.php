@@ -27,6 +27,8 @@ class ProfileController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'birthday' => 'nullable|date',
+            'delivery_address' => 'nullable|string|max:1000',
         ]);
 
         if ($request->hasFile('avatar')) {
