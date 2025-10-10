@@ -67,15 +67,37 @@ class AuthController extends Controller
                 'avatar' => $authentikUser->getAvatar(),
             ]);
             
-            $user = User::updateOrCreate(
-                ['authentik_id' => $authentikUser->getId()],
-                [
+            // $user = User::updateOrCreate(
+            //     ['authentik_id' => $authentikUser->getId()],
+            //     [
+            //         'name' => $authentikUser->getName(),
+            //         'email' => $authentikUser->getEmail(),
+            //         'avatar' => $authentikUser->getAvatar(),
+            //         'password' => Hash::make(Str::random(32)), // Random password для OAuth користувачів
+            //     ]
+            // );
+
+            // If user not found by authentik_id, try to find by email
+            // And only then create new user
+            $user = User::where('authentik_id', $authentikUser->getId())->first();
+            if (!$user) {
+                $user = User::where('email', $authentikUser->getEmail())->first();
+            }
+            if ($user) {
+                // Do not overwrite existing name/avatar if user already exists
+                $user->update([
+                    'authentik_id' => $authentikUser->getId(),
+                    'email' => $authentikUser->getEmail(),
+                ]);
+            } else {
+                $user = User::create([
+                    'authentik_id' => $authentikUser->getId(),
                     'name' => $authentikUser->getName(),
                     'email' => $authentikUser->getEmail(),
                     'avatar' => $authentikUser->getAvatar(),
                     'password' => Hash::make(Str::random(32)), // Random password для OAuth користувачів
-                ]
-            );
+                ]);
+            }
 
             Log::info('User created/updated', [
                 'user_id' => $user->id,
