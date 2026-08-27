@@ -126,7 +126,7 @@ tail -f storage/logs/laravel.log   # Дивитись логи
 
 - 📖 **Документація Laravel**: https://laravel.com/docs
 - 🎨 **Tailwind CSS**: https://tailwindcss.com/docs
-- 🔐 **Authentik**: https://goauthentik.io/docs
+- 🔐 **Google OAuth 2.0**: https://developers.google.com/identity/protocols/oauth2
 
 ---
 

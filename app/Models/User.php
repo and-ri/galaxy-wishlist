@@ -22,7 +22,7 @@ class User extends Authenticatable
         'email',
         'password',
         'avatar',
-        'authentik_id',
+        'google_id',
         'is_admin',
         'birthday',
         'delivery_address',

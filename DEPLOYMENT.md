@@ -118,11 +118,10 @@ MAIL_ENCRYPTION=tls
 MAIL_FROM_ADDRESS=your-email@gmail.com
 MAIL_FROM_NAME="${APP_NAME}"
 
-# Authentik OAuth (налаштуйте за потреби)
-AUTHENTIK_BASE_URL=https://your-authentik-url.com
-AUTHENTIK_CLIENT_ID=your-client-id
-AUTHENTIK_CLIENT_SECRET=your-client-secret
-AUTHENTIK_REDIRECT_URI="${APP_URL}/auth/callback"
+# Google OAuth (https://console.cloud.google.com/apis/credentials)
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-client-secret
+GOOGLE_REDIRECT_URI="${APP_URL}/auth/google/callback"
 
 # Admin credentials
 ADMIN_EMAIL=admin@example.com

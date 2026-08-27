@@ -34,6 +34,7 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
+
             return redirect()->intended('/');
         }
 
@@ -43,58 +44,59 @@ class AuthController extends Controller
     }
 
     /**
-     * Перенаправлення на Authentik для авторизації
+     * Перенаправлення на Google для авторизації
      */
-    public function redirectToAuthentik()
+    public function redirectToGoogle()
     {
-        return Socialite::driver('authentik')->redirect();
+        return Socialite::driver('google')
+            ->scopes(['openid', 'profile', 'email'])
+            ->with(['prompt' => 'select_account'])
+            ->redirect();
     }
 
     /**
-     * Обробка callback від Authentik
+     * Обробка callback від Google
      */
-    public function handleAuthentikCallback()
+    public function handleGoogleCallback(Request $request)
     {
         try {
-            Log::info('=== Authentik Callback Started ===');
-            
-            $authentikUser = Socialite::driver('authentik')->user();
-            
-            Log::info('Authentik user data retrieved', [
-                'id' => $authentikUser->getId(),
-                'email' => $authentikUser->getEmail(),
-                'name' => $authentikUser->getName(),
-                'avatar' => $authentikUser->getAvatar(),
-            ]);
-            
-            // $user = User::updateOrCreate(
-            //     ['authentik_id' => $authentikUser->getId()],
-            //     [
-            //         'name' => $authentikUser->getName(),
-            //         'email' => $authentikUser->getEmail(),
-            //         'avatar' => $authentikUser->getAvatar(),
-            //         'password' => Hash::make(Str::random(32)), // Random password для OAuth користувачів
-            //     ]
-            // );
+            Log::info('=== Google Callback Started ===');
 
-            // If user not found by authentik_id, try to find by email
-            // And only then create new user
-            $user = User::where('authentik_id', $authentikUser->getId())->first();
-            if (!$user) {
-                $user = User::where('email', $authentikUser->getEmail())->first();
+            $googleUser = Socialite::driver('google')->user();
+
+            Log::info('Google user data retrieved', [
+                'id' => $googleUser->getId(),
+                'email' => $googleUser->getEmail(),
+                'name' => $googleUser->getName(),
+                'avatar' => $googleUser->getAvatar(),
+            ]);
+
+            if (! $googleUser->getEmail()) {
+                return redirect()->route('login')->withErrors([
+                    'error' => __('auth.google_no_email'),
+                ]);
             }
+
+            // Спершу шукаємо за google_id, потім за email,
+            // і лише після цього створюємо нового користувача
+            $user = User::where('google_id', $googleUser->getId())->first();
+
+            if (! $user) {
+                $user = User::where('email', $googleUser->getEmail())->first();
+            }
+
             if ($user) {
-                // Do not overwrite existing name/avatar if user already exists
+                // Не перезаписуємо ім'я/аватар, якщо користувач уже існує
                 $user->update([
-                    'authentik_id' => $authentikUser->getId(),
-                    'email' => $authentikUser->getEmail(),
+                    'google_id' => $googleUser->getId(),
+                    'email' => $googleUser->getEmail(),
                 ]);
             } else {
                 $user = User::create([
-                    'authentik_id' => $authentikUser->getId(),
-                    'name' => $authentikUser->getName(),
-                    'email' => $authentikUser->getEmail(),
-                    'avatar' => $authentikUser->getAvatar(),
+                    'google_id' => $googleUser->getId(),
+                    'name' => $googleUser->getName() ?: $googleUser->getNickname(),
+                    'email' => $googleUser->getEmail(),
+                    'avatar' => $googleUser->getAvatar(),
                     'password' => Hash::make(Str::random(32)), // Random password для OAuth користувачів
                 ]);
             }
@@ -104,21 +106,22 @@ class AuthController extends Controller
                 'email' => $user->email,
             ]);
 
-            Auth::login($user);
+            Auth::login($user, true);
+            $request->session()->regenerate();
 
             Log::info('User logged in successfully');
 
             return redirect()->intended('/');
         } catch (\Exception $e) {
-            Log::error('Authentik callback error', [
+            Log::error('Google callback error', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            
-            return redirect('/login')->withErrors([
-                'error' => 'Помилка авторизації через Authentik: ' . $e->getMessage()
+
+            return redirect()->route('login')->withErrors([
+                'error' => __('auth.google_failed').' '.$e->getMessage(),
             ]);
         }
     }

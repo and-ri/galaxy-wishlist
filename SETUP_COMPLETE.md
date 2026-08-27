@@ -3,7 +3,7 @@
 ## ✅ Що вже зроблено:
 
 1. ✅ **База даних та моделі**
-   - Міграції для users (з аватарами, authentik_id, is_admin)
+   - Міграції для users (з аватарами, google_id, is_admin)
    - Міграції для wishes (з пріоритетами, цінами, статусом покупки)
    - Моделі User та Wish з відношеннями
 
@@ -14,12 +14,12 @@
 
 3. ✅ **Система авторизації**
    - Локальний вхід для адміна (/admin/login)
-   - OAuth2/OIDC інтеграція з Authentik
-   - Custom Socialite Provider для Authentik
+   - OAuth2 інтеграція з Google
+   - Laravel Socialite (google driver)
    - Policy для контролю доступу до wishes
 
 4. ✅ **Контролери та маршрути**
-   - AuthController (локальний вхід + Authentik)
+   - AuthController (локальний вхід + Google)
    - WishController (CRUD для бажань)
    - ProfileController (редагування профілю, завантаження аватара)
    - UserController (список користувачів, перегляд чужих бажань)
@@ -38,7 +38,7 @@
 
 7. ✅ **Документація**
    - Детальний README з інструкціями
-   - .env.example з Authentik конфігурацією
+   - .env.example з Google OAuth конфігурацією
    - AdminUserSeeder (admin@example.com / password)
 
 ## 🚀 Швидкий старт:
@@ -123,23 +123,22 @@ php artisan serve
 
 ---
 
-## 🔧 Налаштування Authentik (коли готові):
+## 🔧 Налаштування Google OAuth (коли готові):
 
-1. **Створіть OAuth2/OpenID Provider** в Authentik:
+1. **Створіть OAuth client ID** у [Google Cloud Console](https://console.cloud.google.com/apis/credentials):
+   - Application type: Web application
    - Name: Galaxy Wishlist
-   - Client type: Confidential
-   - Redirect URIs: `http://localhost:8000/auth/authentik/callback`
-   
-2. **Створіть Application**:
-   - Provider: Galaxy Wishlist
-   - Launch URL: http://localhost:8000
+   - Authorized redirect URIs: `http://localhost:8000/auth/google/callback`
+
+2. **Налаштуйте OAuth consent screen**:
+   - Scopes: `openid`, `userinfo.email`, `userinfo.profile`
+   - Для External у режимі Testing додайте тестових користувачів
 
 3. **Додайте в .env**:
 ```env
-AUTHENTIK_BASE_URL=https://your-authentik-domain.com
-AUTHENTIK_CLIENT_ID=<client_id>
-AUTHENTIK_CLIENT_SECRET=<client_secret>
-AUTHENTIK_REDIRECT_URI=http://localhost:8000/auth/authentik/callback
+GOOGLE_CLIENT_ID=<client_id>.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=<client_secret>
+GOOGLE_REDIRECT_URI="${APP_URL}/auth/google/callback"
 ```
 
 4. **Перезапустіть сервер**
@@ -187,18 +186,18 @@ chmod -R 775 storage
 ```
 app/
 ├── Http/Controllers/
-│   ├── AuthController.php       # Authentik + локальний вхід
+│   ├── AuthController.php       # Google OAuth + локальний вхід
 │   ├── WishController.php       # Бажання (CRUD)
 │   ├── ProfileController.php    # Профіль + аватар + birthday + delivery_address
 │   ├── UserController.php       # Список користувачів
 │   └── UrlParserController.php  # 🆕 Парсинг URL та завантаження зображень
 ├── Models/
-│   ├── User.php                 # +avatar, authentik_id, is_admin, birthday, delivery_address
+│   ├── User.php                 # +avatar, google_id, is_admin, birthday, delivery_address
 │   └── Wish.php                 # +image, title, description, url, price, priority
 ├── Policies/
 │   └── WishPolicy.php           # Доступ тільки власнику
 └── Providers/
-    └── AuthentikProvider.php    # OAuth2 для Authentik
+    └── AppServiceProvider.php   # Сервіс-провайдер додатку
 
 resources/
 ├── views/
@@ -237,4 +236,4 @@ lang/uk/                         # Українські переклади
 3. Увійдіть як admin@example.com / password
 4. Почніть додавати бажання!
 
-Коли налаштуєте Authentik - користувачі зможуть входити через SSO.
+Коли налаштуєте Google OAuth - користувачі зможуть входити через Google.

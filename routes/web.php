@@ -2,9 +2,9 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UrlParserController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WishController;
-use App\Http\Controllers\UrlParserController;
 use Illuminate\Support\Facades\Route;
 
 // Головна сторінка
@@ -17,8 +17,8 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::get('/admin/login', [AuthController::class, 'showAdminLogin'])->name('admin.login');
     Route::post('/admin/login', [AuthController::class, 'adminLogin'])->name('admin.login.post');
-    Route::get('/auth/authentik', [AuthController::class, 'redirectToAuthentik'])->name('auth.authentik');
-    Route::get('/auth/authentik/callback', [AuthController::class, 'handleAuthentikCallback'])->name('auth.authentik.callback');
+    Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('auth.google');
+    Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback'])->name('auth.google.callback');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');

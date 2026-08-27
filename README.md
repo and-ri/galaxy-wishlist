@@ -1,10 +1,10 @@
 # 🌌 Galaxy Wishlist
 
-Веб-додаток для створення та обміну списками бажань з можливістю SSO авторизації через Authentik.
+Веб-додаток для створення та обміну списками бажань з авторизацією через Google.
 
 ## ✨ Функціонал
 
-- 🔐 SSO авторизація через Authentik (goauthentik.io)
+- 🔐 Авторизація через Google (OAuth 2.0)
 - 🎁 Створення та управління власними бажаннями
 - 🖼️ Завантаження зображень для бажань
 - 🔗 Автозаповнення даних товару з URL (Open Graph)
@@ -70,48 +70,40 @@ composer run dev
 
 ## 🔑 Локальний вхід (для розробки)
 
-Для локального тестування без Authentik:
+Для локального тестування без Google OAuth:
 
 - URL: `/admin/login`
 - Email: `admin@example.com`
 - Password: `password`
 
-## 🔧 Налаштування Authentik
+## 🔧 Налаштування Google OAuth
 
-### 1. Створіть Provider в Authentik
+### 1. Створіть OAuth-клієнт у Google Cloud Console
 
-1. Перейдіть в Admin Interface → Applications → Providers
-2. Створіть новий **OAuth2/OpenID Provider**
-3. Налаштування:
+1. Перейдіть у [Google Cloud Console](https://console.cloud.google.com/) і створіть (або виберіть) проєкт
+2. **APIs & Services → OAuth consent screen**: налаштуйте екран згоди
+   - **User type**: External (або Internal для Google Workspace)
+   - Додайте scopes: `openid`, `.../auth/userinfo.email`, `.../auth/userinfo.profile`
+   - Для External у режимі Testing додайте тестових користувачів
+3. **APIs & Services → Credentials → Create Credentials → OAuth client ID**
+   - **Application type**: Web application
    - **Name**: Galaxy Wishlist
-   - **Authorization flow**: default-provider-authorization-implicit-consent
-   - **Client type**: Confidential
-   - **Redirect URIs**: `http://localhost:8000/auth/authentik/callback`
-   - **Signing Key**: виберіть будь-який сертифікат
+   - **Authorized JavaScript origins**: `http://localhost:8000`
+   - **Authorized redirect URIs**: `http://localhost:8000/auth/google/callback`
+4. Скопіюйте **Client ID** та **Client Secret**
 
-4. Збережіть та скопіюйте:
-   - Client ID
-   - Client Secret
-
-### 2. Створіть Application
-
-1. Applications → Create
-2. Налаштування:
-   - **Name**: Galaxy Wishlist
-   - **Slug**: galaxy-wishlist
-   - **Provider**: виберіть створений Provider
-   - **Launch URL**: `http://localhost:8000`
-
-### 3. Оновіть .env
+### 2. Оновіть .env
 
 Додайте отримані дані в `.env`:
 
 ```env
-AUTHENTIK_BASE_URL=https://your-authentik-domain.com
-AUTHENTIK_CLIENT_ID=<client_id_from_provider>
-AUTHENTIK_CLIENT_SECRET=<client_secret_from_provider>
-AUTHENTIK_REDIRECT_URI=http://localhost:8000/auth/authentik/callback
+GOOGLE_CLIENT_ID=<client_id>.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=<client_secret>
+GOOGLE_REDIRECT_URI="${APP_URL}/auth/google/callback"
 ```
+
+> ⚠️ Redirect URI в `.env` має **точно** збігатися з тим, що вказано в Google Cloud Console.
+> Для продакшену додайте окремий redirect URI з вашим доменом (`https://your-domain.com/auth/google/callback`).
 
 ## 📁 Структура проекту
 
@@ -128,8 +120,7 @@ app/
 ├── Policies/
 │   └── WishPolicy.php           # Політики доступу
 └── Providers/
-    ├── AppServiceProvider.php   # Реєстрація Authentik provider
-    └── AuthentikProvider.php    # Custom Socialite provider
+    └── AppServiceProvider.php   # Сервіс-провайдер додатку
 
 resources/
 ├── views/
@@ -177,7 +168,7 @@ php artisan view:clear
 - **Backend**: Laravel 11
 - **Frontend**: Blade Templates, Vanilla CSS
 - **Database**: SQLite (за замовчуванням)
-- **Auth**: Laravel Socialite + Custom Authentik Provider
+- **Auth**: Laravel Socialite (Google OAuth 2.0)
 - **Localization**: Українська мова
 
 ## 🤝 Внесок

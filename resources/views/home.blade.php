@@ -36,7 +36,7 @@
     <div class="bg-white rounded-2xl shadow-xl p-8 text-center hover:shadow-2xl transition-shadow duration-300 transform hover:-translate-y-2">
         <div class="text-6xl mb-4">🔒</div>
         <h3 class="text-2xl font-bold text-purple-600 mb-3">Безпечний вхід</h3>
-        <p class="text-gray-600 leading-relaxed">Авторизація через Authentik SSO для захисту ваших даних</p>
+        <p class="text-gray-600 leading-relaxed">Авторизація через Google для захисту ваших даних</p>
     </div>
 </div>
 

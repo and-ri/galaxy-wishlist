@@ -19,7 +19,7 @@
 - ✅ Пріоритети бажань (низький, середній, високий)
 
 ### 🔐 Авторизація
-- ✅ SSO через Authentik OAuth
+- ✅ Авторизація через Google OAuth
 - ✅ Локальний логін для адміна
 - ✅ Захист маршрутів через middleware
 
@@ -225,7 +225,7 @@ php artisan up
 
 - **Laravel документація**: https://laravel.com/docs
 - **Tailwind CSS**: https://tailwindcss.com/docs
-- **Authentik**: https://goauthentik.io/docs
+- **Google OAuth 2.0**: https://developers.google.com/identity/protocols/oauth2
 - **Nginx**: https://nginx.org/en/docs/
 
 ## 🎊 Готово!
