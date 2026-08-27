@@ -25,15 +25,15 @@ class ProfileController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
+            'email' => 'required|email|unique:users,email,'.$user->id,
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'birthday' => 'nullable|date',
             'delivery_address' => 'nullable|string|max:1000',
         ]);
 
         if ($request->hasFile('avatar')) {
-            // Видалити старий аватар
-            if ($user->avatar) {
+            // Видалити старий аватар (тільки локальний файл, не зовнішній URL)
+            if ($user->avatar && ! $user->hasExternalAvatar()) {
                 Storage::disk('public')->delete($user->avatar);
             }
 

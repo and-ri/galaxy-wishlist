@@ -19,7 +19,7 @@
             <div class="flex flex-col items-center space-y-4">
                 <div class="relative">
                     @if($user->avatar)
-                        <img src="{{ asset('storage/' . $user->avatar) }}" alt="{{ $user->name }}" class="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover ring-4 ring-purple-200">
+                        <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover ring-4 ring-purple-200">
                     @else
                         <div class="w-24 h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center ring-4 ring-purple-200">
                             <span class="text-4xl md:text-5xl font-bold text-white">{{ strtoupper(substr($user->name, 0, 1)) }}</span>

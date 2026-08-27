@@ -5,7 +5,7 @@
 @section('content')
 <div style="display: flex; align-items: center; gap: 1rem; margin: 2rem 0;">
     @if($user->avatar)
-        <img src="{{ asset('storage/' . $user->avatar) }}" alt="{{ $user->name }}" class="avatar" style="width: 80px; height: 80px;">
+        <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="avatar" style="width: 80px; height: 80px;">
     @else
         <div class="avatar" style="width: 80px; height: 80px; background: #6a1b9a; color: white; display: flex; align-items: center; justify-content: center; font-size: 2rem;">
             {{ strtoupper(substr($user->name, 0, 1)) }}

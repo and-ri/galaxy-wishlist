@@ -31,7 +31,7 @@
                         <li><a href="{{ route('users.index') }}" class="hover:text-purple-200 transition duration-200 text-sm lg:text-base">{{ __('wishlist.all_users') }}</a></li>
                         <li><a href="{{ route('profile.edit') }}" class="hover:text-purple-200 transition duration-200 flex items-center space-x-2 text-sm lg:text-base">
                             @if(auth()->user()->avatar)
-                                <img src="{{ asset('storage/' . auth()->user()->avatar) }}" alt="{{ auth()->user()->name }}" class="w-8 h-8 rounded-full">
+                                <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}" class="w-8 h-8 rounded-full">
                             @else
                                 <div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-sm font-bold">
                                     {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}

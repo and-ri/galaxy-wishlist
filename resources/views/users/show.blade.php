@@ -8,7 +8,7 @@
     <div class="bg-gradient-to-r from-purple-600 to-indigo-600 p-4 md:p-8">
         <div class="flex flex-col sm:flex-row items-center gap-4 md:gap-6">
             @if($user->avatar)
-                <img src="{{ asset('storage/' . $user->avatar) }}" alt="{{ $user->name }}" class="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover ring-4 ring-white shadow-lg">
+                <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover ring-4 ring-white shadow-lg">
             @else
                 <div class="w-20 h-20 md:w-24 md:h-24 rounded-full bg-white bg-opacity-30 backdrop-blur-sm flex items-center justify-center ring-4 ring-white shadow-lg">
                     <span class="text-3xl md:text-4xl font-bold text-white">{{ strtoupper(substr($user->name, 0, 1)) }}</span>

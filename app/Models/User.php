@@ -3,9 +3,11 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
@@ -51,6 +53,35 @@ class User extends Authenticatable
             'is_admin' => 'boolean',
             'birthday' => 'date',
         ];
+    }
+
+    /**
+     * Повний URL аватара.
+     *
+     * Аватар може бути або зовнішнім посиланням (Google), або шляхом
+     * у storage/public (завантажений користувачем файл).
+     */
+    protected function avatarUrl(): Attribute
+    {
+        return Attribute::get(function (): ?string {
+            if (! $this->avatar) {
+                return null;
+            }
+
+            if (Str::startsWith($this->avatar, ['http://', 'https://'])) {
+                return $this->avatar;
+            }
+
+            return asset('storage/'.$this->avatar);
+        });
+    }
+
+    /**
+     * Чи є аватар зовнішнім посиланням (не файлом у storage).
+     */
+    public function hasExternalAvatar(): bool
+    {
+        return $this->avatar && Str::startsWith($this->avatar, ['http://', 'https://']);
     }
 
     /**
