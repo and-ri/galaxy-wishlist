@@ -18,6 +18,9 @@ npm run build
 echo "🗄️  Виконання міграцій..."
 php artisan migrate --force
 
+echo "🔗 Створення симлінка storage..."
+php artisan storage:link --force
+
 echo "🧹 Очистка та кешування конфігурації..."
 php artisan optimize:clear
 php artisan config:cache
