@@ -23,11 +23,13 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 // Захищені маршрути
 Route::middleware('auth')->group(function () {
     // Wishes (бажання)
-    Route::resource('wishes', WishController::class);
+    Route::resource('wishes', WishController::class)->except('show');
 
     // URL Parser API
-    Route::post('/api/parse-url', [UrlParserController::class, 'parse'])->name('api.parse-url');
-    Route::post('/api/download-image', [UrlParserController::class, 'downloadImage'])->name('api.download-image');
+    Route::middleware('throttle:20,1')->group(function () {
+        Route::post('/api/parse-url', [UrlParserController::class, 'parse'])->name('api.parse-url');
+        Route::post('/api/download-image', [UrlParserController::class, 'downloadImage'])->name('api.download-image');
+    });
 
     // Профіль
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

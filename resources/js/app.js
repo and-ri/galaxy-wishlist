@@ -84,10 +84,14 @@ function initUrlParser() {
             fillIfEmpty('wish-description', data.description);
             fillIfEmpty('wish-price', data.price);
 
+            let note = 'Готово. Перевірте поля і збережіть.';
+
             if (data.currency) {
                 const currency = document.querySelector(`input[name="currency"][value="${data.currency}"]`);
                 if (currency) {
                     currency.checked = true;
+                } else if (data.price) {
+                    note = `Ціна вказана в ${data.currency} — перерахуйте її і виберіть валюту.`;
                 }
             }
 
@@ -100,7 +104,7 @@ function initUrlParser() {
                 }
             }
 
-            setStatus('Готово. Перевірте поля і збережіть.');
+            setStatus(note);
         } catch (error) {
             console.error(error);
             setStatus('Не вдалося прочитати цю сторінку. Заповніть поля вручну.', 'error');

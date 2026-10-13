@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Wish;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class WishController extends Controller
 {
@@ -18,6 +18,7 @@ class WishController extends Controller
     public function index()
     {
         $wishes = Auth::user()->wishes()->latest()->get();
+
         return view('wishes.index', compact('wishes'));
     }
 
@@ -42,7 +43,7 @@ class WishController extends Controller
             'currency' => 'nullable|string|max:3',
             'priority' => 'nullable|integer|min:0|max:2',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'image_path' => 'nullable|string', // For images downloaded from URL
+            'image_path' => ['nullable', 'string', 'regex:#^wishes/[A-Za-z0-9]{40}\\.(jpg|png|gif|webp)$#'], // Фото, завантажене через автозаповнення
         ]);
 
         // Handle image upload
@@ -62,19 +63,12 @@ class WishController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(Wish $wish)
-    {
-        return view('wishes.show', compact('wish'));
-    }
-
-    /**
      * Show the form for editing the specified resource.
      */
     public function edit(Wish $wish)
     {
         $this->authorize('update', $wish);
+
         return view('wishes.edit', compact('wish'));
     }
 
@@ -94,7 +88,7 @@ class WishController extends Controller
             'priority' => 'nullable|integer|min:0|max:2',
             'is_purchased' => 'boolean',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'image_path' => 'nullable|string',
+            'image_path' => ['nullable', 'string', 'regex:#^wishes/[A-Za-z0-9]{40}\\.(jpg|png|gif|webp)$#'],
         ]);
 
         // Handle image upload
@@ -126,12 +120,12 @@ class WishController extends Controller
     public function destroy(Wish $wish)
     {
         $this->authorize('delete', $wish);
-        
+
         // Delete associated image
         if ($wish->image) {
             Storage::disk('public')->delete($wish->image);
         }
-        
+
         $wish->delete();
 
         return redirect()->route('wishes.index')->with('success', 'Бажання видалено!');

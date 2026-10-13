@@ -2,233 +2,110 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\ProductPageParser;
+use App\Services\RemoteFetcher;
+use App\Services\RemoteFetchException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Throwable;
 
 class UrlParserController extends Controller
 {
+    private const MAX_PAGE_BYTES = 3 * 1024 * 1024;
+
+    private const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
     /**
-     * Parse metadata from URL
+     * Дозволені формати зображень і розширення, з яким їх зберігаємо.
      */
-    public function parse(Request $request)
+    private const IMAGE_TYPES = [
+        'image/jpeg' => 'jpg',
+        'image/png' => 'png',
+        'image/gif' => 'gif',
+        'image/webp' => 'webp',
+    ];
+
+    public function __construct(private RemoteFetcher $fetcher) {}
+
+    /**
+     * Витягнути дані товару зі сторінки за посиланням
+     */
+    public function parse(Request $request, ProductPageParser $parser): JsonResponse
     {
-        $request->validate([
-            'url' => 'required|url',
-        ]);
+        $request->validate(['url' => 'required|url:http,https|max:2048']);
 
         try {
-            $url = $request->url;
-            
-            // Fetch the page content
-            $response = Http::timeout(10)
-                ->withHeaders([
-                    'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-                ])
-                ->get($url);
+            $response = $this->fetcher->get(
+                $request->url,
+                'text/html,application/xhtml+xml;q=0.9,*/*;q=0.5',
+                self::MAX_PAGE_BYTES,
+            );
 
-            if (!$response->successful()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Failed to fetch URL content',
-                ], 400);
+            $contentType = $response->header('Content-Type');
+
+            if ($contentType && ! Str::contains($contentType, ['html', 'xml'], ignoreCase: true)) {
+                return $this->error('За цим посиланням не вебсторінка.');
             }
 
-            $html = $response->body();
-            
-            // Extract metadata
-            $data = [
-                'title' => $this->extractTitle($html),
-                'description' => $this->extractDescription($html),
-                'price' => $this->extractPrice($html),
-                'currency' => $this->extractCurrency($html),
-                'image_url' => $this->extractImage($html, $url),
-            ];
+            $finalUrl = (string) ($response->effectiveUri() ?? $request->url);
 
             return response()->json([
                 'success' => true,
-                'data' => $data,
+                'data' => $parser->parse($response->body(), $finalUrl, $contentType),
             ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error parsing URL: ' . $e->getMessage(),
-            ], 500);
+        } catch (Throwable $e) {
+            return $this->failure($e, 'Не вдалося відкрити сторінку. Заповніть поля вручну.');
         }
     }
 
     /**
-     * Download and save image from URL
+     * Завантажити зображення товару у сховище
      */
-    public function downloadImage(Request $request)
+    public function downloadImage(Request $request): JsonResponse
     {
-        $request->validate([
-            'image_url' => 'required|url',
-        ]);
+        $request->validate(['image_url' => 'required|url:http,https|max:2048']);
 
         try {
-            $imageUrl = $request->image_url;
-            
-            // Download the image
-            $response = Http::timeout(10)->get($imageUrl);
-            
-            if (!$response->successful()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Failed to download image',
-                ], 400);
+            $response = $this->fetcher->get($request->image_url, 'image/avif,image/webp,image/*;q=0.8', self::MAX_IMAGE_BYTES);
+            $body = $response->body();
+
+            // Тип визначаємо за вмістом, а не за URL чи заголовком: так на диск не потрапить .php чи .html
+            $info = @getimagesizefromstring($body);
+            $extension = self::IMAGE_TYPES[$info['mime'] ?? ''] ?? null;
+
+            if (! $extension) {
+                return $this->error('Зображення має непідтримуваний формат.');
             }
 
-            // Generate unique filename
-            $extension = pathinfo(parse_url($imageUrl, PHP_URL_PATH), PATHINFO_EXTENSION) ?: 'jpg';
-            $filename = 'wishes/' . Str::random(40) . '.' . $extension;
-            
-            // Save to storage
-            Storage::disk('public')->put($filename, $response->body());
-            
+            $path = 'wishes/'.Str::random(40).'.'.$extension;
+            Storage::disk('public')->put($path, $body);
+
             return response()->json([
                 'success' => true,
-                'path' => $filename,
-                'url' => asset('storage/' . $filename),
+                'path' => $path,
+                'url' => asset('storage/'.$path),
             ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error downloading image: ' . $e->getMessage(),
-            ], 500);
+        } catch (Throwable $e) {
+            return $this->failure($e, 'Не вдалося завантажити зображення.');
         }
     }
 
-    /**
-     * Extract title from HTML
-     */
-    private function extractTitle($html)
+    private function failure(Throwable $e, string $fallback): JsonResponse
     {
-        // Try Open Graph title
-        if (preg_match('/<meta\s+property="og:title"\s+content="([^"]+)"/i', $html, $matches)) {
-            return html_entity_decode($matches[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        // Повідомлення RemoteFetchException безпечні для показу; решту лише логуємо
+        $known = $e instanceof RemoteFetchException ? $e : ($e->getPrevious() instanceof RemoteFetchException ? $e->getPrevious() : null);
+
+        if (! $known) {
+            report($e);
         }
-        
-        // Try Twitter title
-        if (preg_match('/<meta\s+name="twitter:title"\s+content="([^"]+)"/i', $html, $matches)) {
-            return html_entity_decode($matches[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        }
-        
-        // Try regular title tag
-        if (preg_match('/<title>([^<]+)<\/title>/i', $html, $matches)) {
-            return html_entity_decode(trim($matches[1]), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        }
-        
-        return null;
+
+        return $this->error($known?->getMessage() ?? $fallback);
     }
 
-    /**
-     * Extract description from HTML
-     */
-    private function extractDescription($html)
+    private function error(string $message): JsonResponse
     {
-        // Try Open Graph description
-        if (preg_match('/<meta\s+property="og:description"\s+content="([^"]+)"/i', $html, $matches)) {
-            return html_entity_decode($matches[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        }
-        
-        // Try Twitter description
-        if (preg_match('/<meta\s+name="twitter:description"\s+content="([^"]+)"/i', $html, $matches)) {
-            return html_entity_decode($matches[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        }
-        
-        // Try regular meta description
-        if (preg_match('/<meta\s+name="description"\s+content="([^"]+)"/i', $html, $matches)) {
-            return html_entity_decode($matches[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        }
-        
-        return null;
-    }
-
-    /**
-     * Extract price from HTML
-     */
-    private function extractPrice($html)
-    {
-        // Try Open Graph price
-        if (preg_match('/<meta\s+property="product:price:amount"\s+content="([^"]+)"/i', $html, $matches)) {
-            return $matches[1];
-        }
-        
-        // Try to find price in common patterns
-        if (preg_match('/[₴$€£]?\s*(\d+[\s,]?\d*\.?\d+)\s*[₴$€£]?/u', $html, $matches)) {
-            return preg_replace('/[^\d.]/', '', $matches[1]);
-        }
-        
-        return null;
-    }
-
-    /**
-     * Extract currency from HTML
-     */
-    private function extractCurrency($html)
-    {
-        // Try Open Graph currency
-        if (preg_match('/<meta\s+property="product:price:currency"\s+content="([^"]+)"/i', $html, $matches)) {
-            return strtoupper($matches[1]);
-        }
-        
-        // Try to detect currency symbols
-        if (preg_match('/₴|UAH|грн/u', $html)) {
-            return 'UAH';
-        }
-        if (preg_match('/\$|USD/u', $html)) {
-            return 'USD';
-        }
-        if (preg_match('/€|EUR/u', $html)) {
-            return 'EUR';
-        }
-        
-        return 'UAH'; // Default currency
-    }
-
-    /**
-     * Extract image from HTML
-     */
-    private function extractImage($html, $baseUrl)
-    {
-        // Try Open Graph image
-        if (preg_match('/<meta\s+property="og:image"\s+content="([^"]+)"/i', $html, $matches)) {
-            return $this->normalizeImageUrl($matches[1], $baseUrl);
-        }
-        
-        // Try Twitter image
-        if (preg_match('/<meta\s+name="twitter:image"\s+content="([^"]+)"/i', $html, $matches)) {
-            return $this->normalizeImageUrl($matches[1], $baseUrl);
-        }
-        
-        return null;
-    }
-
-    /**
-     * Normalize image URL (handle relative URLs)
-     */
-    private function normalizeImageUrl($imageUrl, $baseUrl)
-    {
-        if (filter_var($imageUrl, FILTER_VALIDATE_URL)) {
-            return $imageUrl;
-        }
-        
-        $parsedBase = parse_url($baseUrl);
-        $scheme = $parsedBase['scheme'] ?? 'https';
-        $host = $parsedBase['host'] ?? '';
-        
-        if (str_starts_with($imageUrl, '//')) {
-            return $scheme . ':' . $imageUrl;
-        }
-        
-        if (str_starts_with($imageUrl, '/')) {
-            return $scheme . '://' . $host . $imageUrl;
-        }
-        
-        return $scheme . '://' . $host . '/' . $imageUrl;
+        return response()->json(['success' => false, 'message' => $message], 422);
     }
 }

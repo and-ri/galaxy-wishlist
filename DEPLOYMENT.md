@@ -191,6 +191,12 @@ server {
         try_files $uri $uri/ /index.php?$query_string;
     }
 
+    # Завантажені користувачами файли ніколи не виконуються як PHP
+    location ^~ /storage/ {
+        location ~ \.php$ { deny all; }
+        try_files $uri =404;
+    }
+
     location ~ \.php$ {
         fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
         fastcgi_index index.php;
