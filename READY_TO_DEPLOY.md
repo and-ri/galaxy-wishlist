@@ -55,7 +55,7 @@
 
 3. **deploy.sh** - Скрипт автоматичного деплою через SSH
    - Налаштуйте credentials
-   - Запустіть: `./deploy.sh`
+   - Запустіть: `bash deploy.sh`
 
 4. **migrate-to-mysql.sh** - Міграція даних з SQLite на MySQL
    - Автоматичний експорт/імпорт
@@ -98,7 +98,7 @@
 
 2. Запустіть:
    ```bash
-   ./deploy.sh
+   bash deploy.sh
    ```
 
 ### Варіант 3: Вручну
@@ -236,7 +236,7 @@ php artisan up
 
 1. 📖 Прочитайте `DEPLOYMENT.md`
 2. ✅ Виконайте `DEPLOY_CHECKLIST.md`
-3. 🚀 Запустіть `./deploy.sh` або налаштуйте GitHub Actions
+3. 🚀 Запустіть `bash deploy.sh` або налаштуйте GitHub Actions
 4. 🎉 Насолоджуйтесь!
 
 ---

@@ -61,7 +61,7 @@ composer run dev
 
 1. Налаштуйте сервер згідно з [DEPLOYMENT.md](DEPLOYMENT.md)
 2. Відредагуйте `deploy.sh` з вашими credentials
-3. Виконайте: `./deploy.sh`
+3. Виконайте: `bash deploy.sh`
 
 ### Чеклист деплою
 
