@@ -2,119 +2,95 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f5f5f7">
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000">
+    <meta name="color-scheme" content="light dark">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', config('app.name'))</title>
+    <title>@hasSection('title') @yield('title') · @endif {{ config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-gradient-to-br from-purple-50 via-white to-pink-50 min-h-screen">
-    <!-- Navigation -->
-    <nav class="bg-gradient-to-r from-purple-900 via-purple-800 to-indigo-900 text-white shadow-lg">
-        <div class="container mx-auto px-4 py-3">
-            <div class="flex justify-between items-center">
-                <a href="{{ route('home') }}" class="flex items-center space-x-2">
-                    <span class="text-2xl md:text-3xl">🌌</span>
-                    <h1 class="text-lg md:text-2xl font-bold">{{ config('app.name') }}</h1>
-                </a>
-                
-                <!-- Mobile menu button -->
-                <button id="mobile-menu-button" class="md:hidden p-2 rounded-lg hover:bg-purple-700 transition">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                    </svg>
-                </button>
-                
-                <!-- Desktop menu -->
-                <ul class="hidden md:flex items-center space-x-4 lg:space-x-6">
-                    @auth
-                        <li><a href="{{ route('wishes.index') }}" class="hover:text-purple-200 transition duration-200 text-sm lg:text-base">{{ __('wishlist.my_wishes') }}</a></li>
-                        <li><a href="{{ route('users.index') }}" class="hover:text-purple-200 transition duration-200 text-sm lg:text-base">{{ __('wishlist.all_users') }}</a></li>
-                        <li><a href="{{ route('profile.edit') }}" class="hover:text-purple-200 transition duration-200 flex items-center space-x-2 text-sm lg:text-base">
-                            @if(auth()->user()->avatar)
-                                <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}" class="w-8 h-8 rounded-full">
-                            @else
-                                <div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-sm font-bold">
-                                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                                </div>
-                            @endif
-                            <span class="hidden lg:inline">{{ __('wishlist.profile') }}</span>
-                        </a></li>
-                        <li>
-                            <form action="{{ route('logout') }}" method="POST">
-                                @csrf
-                                <button type="submit" class="px-3 py-2 lg:px-4 bg-purple-700 hover:bg-purple-600 rounded-lg transition duration-200 text-sm lg:text-base">{{ __('auth.logout') }}</button>
-                            </form>
-                        </li>
-                    @else
-                        <li><a href="{{ route('login') }}" class="px-3 py-2 lg:px-4 bg-purple-700 hover:bg-purple-600 rounded-lg transition duration-200 text-sm lg:text-base">{{ __('auth.login') }}</a></li>
-                    @endauth
-                </ul>
-            </div>
-            
-            <!-- Mobile menu -->
-            <div id="mobile-menu" class="hidden md:hidden mt-4 pb-4 space-y-3">
-                @auth
-                    <a href="{{ route('wishes.index') }}" class="block px-4 py-2 hover:bg-purple-700 rounded-lg transition">{{ __('wishlist.my_wishes') }}</a>
-                    <a href="{{ route('users.index') }}" class="block px-4 py-2 hover:bg-purple-700 rounded-lg transition">{{ __('wishlist.all_users') }}</a>
-                    <a href="{{ route('profile.edit') }}" class="block px-4 py-2 hover:bg-purple-700 rounded-lg transition">{{ __('wishlist.profile') }}</a>
+<body class="min-h-dvh">
+    @php
+        $nav = [
+            ['route' => 'home', 'match' => 'home', 'label' => 'Огляд', 'icon' => 'home'],
+            ['route' => 'wishes.index', 'match' => 'wishes.*', 'label' => __('wishlist.my_wishes'), 'tab' => 'Бажання', 'icon' => 'gift'],
+            ['route' => 'users.index', 'match' => 'users.*', 'label' => __('wishlist.all_users'), 'tab' => 'Люди', 'icon' => 'users'],
+        ];
+    @endphp
+
+    <header class="topbar glass sticky top-0 z-40">
+        <div class="mx-auto flex h-13 max-w-5xl items-center gap-6 px-4 sm:px-6">
+            <a href="{{ route('home') }}" class="flex items-center gap-2.5" aria-label="{{ config('app.name') }}, на головну">
+                <span class="flex size-7 items-center justify-center rounded-[8px] bg-accent text-white">
+                    <x-icon name="sparkles" :size="17" :stroke="1.9" />
+                </span>
+                <span class="text-headline">{{ config('app.name') }}</span>
+            </a>
+
+            @auth
+                <nav class="hidden items-center gap-1 md:flex" aria-label="Основна навігація">
+                    @foreach ($nav as $item)
+                        <a href="{{ route($item['route']) }}" class="nav-link" @if (request()->routeIs($item['match'])) aria-current="page" @endif>{{ $item['label'] }}</a>
+                    @endforeach
+                </nav>
+
+                <div class="ml-auto hidden items-center gap-2 md:flex">
+                    <a href="{{ route('profile.edit') }}" class="pressable flex items-center gap-2 rounded-full py-1 pr-3 pl-1 hover:bg-fill" @if (request()->routeIs('profile.*')) aria-current="page" @endif>
+                        <x-avatar :user="auth()->user()" :size="28" />
+                        <span class="text-sm font-medium">{{ Str::before(auth()->user()->name, ' ') }}</span>
+                    </a>
                     <form action="{{ route('logout') }}" method="POST">
                         @csrf
-                        <button type="submit" class="w-full text-left px-4 py-2 hover:bg-purple-700 rounded-lg transition">{{ __('auth.logout') }}</button>
+                        <button type="submit" class="btn btn-secondary btn-icon" aria-label="{{ __('auth.logout') }}" title="{{ __('auth.logout') }}">
+                            <x-icon name="logout" :size="16" :stroke="2" />
+                        </button>
                     </form>
-                @else
-                    <a href="{{ route('login') }}" class="block px-4 py-2 hover:bg-purple-700 rounded-lg transition text-center">{{ __('auth.login') }}</a>
-                @endauth
-            </div>
+                </div>
+            @else
+                @unless (request()->routeIs('login'))
+                    <a href="{{ route('login') }}" class="btn btn-primary btn-sm ml-auto">{{ __('auth.login') }}</a>
+                @endunless
+            @endauth
         </div>
-    </nav>
-    
-    <script>
-        document.getElementById('mobile-menu-button')?.addEventListener('click', function() {
-            const menu = document.getElementById('mobile-menu');
-            menu.classList.toggle('hidden');
-        });
-    </script>
+    </header>
 
-    <!-- Content -->
-    <main class="container mx-auto px-4 py-8 min-h-[calc(100vh-160px)]">
-        <!-- Flash Messages -->
-        @if (session('success'))
-            <div class="mb-6 bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg shadow-md flex items-center space-x-2">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <span>{{ session('success') }}</span>
+    {{-- Тости: успіх, помилка, невалідна форма --}}
+    <div class="pointer-events-none fixed inset-x-0 z-50 flex flex-col items-center gap-2 px-4" style="top: calc(env(safe-area-inset-top) + 64px)" aria-live="polite">
+        @foreach (array_filter([
+            session('success') ? ['success', session('success')] : null,
+            session('error') ? ['error', session('error')] : null,
+            $errors->any() && ! session('error') && ! request()->routeIs('login') ? ['error', 'Не вдалося зберегти. Перевірте виділені поля.'] : null,
+        ]) as [$type, $message])
+            <div data-toast class="toast card pointer-events-auto flex max-w-md items-center gap-2.5 rounded-full py-2.5 pr-5 pl-3.5 text-[0.9375rem] font-medium" role="status">
+                <x-icon :name="$type === 'success' ? 'check-circle' : 'exclamation-circle'" :size="22" :stroke="2" class="{{ $type === 'success' ? 'text-success' : 'text-danger' }}" />
+                <span>{{ $message }}</span>
             </div>
-        @endif
+        @endforeach
+    </div>
 
-        @if (session('error'))
-            <div class="mb-6 bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg shadow-md flex items-center space-x-2">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <span>{{ session('error') }}</span>
-            </div>
-        @endif
-
-        @if ($errors->any())
-            <div class="mb-6 bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg shadow-md">
-                <div class="font-bold mb-2">Помилки валідації:</div>
-                <ul class="list-disc list-inside space-y-1">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
+    <main class="mx-auto max-w-5xl px-4 pt-6 pb-28 sm:px-6 md:pt-10 md:pb-16">
         @yield('content')
     </main>
 
-    <!-- Footer -->
-    <footer class="mt-16 bg-purple-900 text-white py-8">
-        <div class="container mx-auto px-4 text-center">
-            <p class="text-purple-200">© {{ date('Y') }} {{ config('app.name') }}. Всі права захищені.</p>
-        </div>
+    <footer class="hidden pb-10 text-center text-footnote text-tertiary md:block">
+        © {{ date('Y') }} {{ config('app.name') }}
     </footer>
+
+    @auth
+        {{-- Таббар на телефоні: великі цілі під палець, завжди на місці --}}
+        <nav class="tabbar glass fixed inset-x-0 bottom-0 z-40 flex md:hidden" aria-label="Основна навігація">
+            @foreach ($nav as $item)
+                <a href="{{ route($item['route']) }}" class="tab" @if (request()->routeIs($item['match'])) aria-current="page" @endif>
+                    <x-icon :name="$item['icon']" :size="26" :stroke="request()->routeIs($item['match']) ? 2 : 1.6" />
+                    {{ $item['tab'] ?? $item['label'] }}
+                </a>
+            @endforeach
+            <a href="{{ route('profile.edit') }}" class="tab" @if (request()->routeIs('profile.*')) aria-current="page" @endif>
+                <x-icon name="user" :size="26" :stroke="request()->routeIs('profile.*') ? 2 : 1.6" />
+                {{ __('wishlist.profile') }}
+            </a>
+        </nav>
+    @endauth
 </body>
 </html>

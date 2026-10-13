@@ -1,137 +1,165 @@
 import './bootstrap';
 
-// URL Parser functionality for wishes
-document.addEventListener('DOMContentLoaded', function() {
-    const urlInput = document.getElementById('wish-url');
-    const parseButton = document.getElementById('parse-url-btn');
-    const titleInput = document.getElementById('wish-title');
-    const descriptionInput = document.getElementById('wish-description');
-    const priceInput = document.getElementById('wish-price');
-    const currencyInput = document.getElementById('wish-currency');
-    const imagePathInput = document.getElementById('wish-image-path');
-    const imagePreview = document.getElementById('image-preview');
-    const loadingIndicator = document.getElementById('parsing-loading');
+const csrfToken = () => document.querySelector('meta[name="csrf-token"]').content;
 
-    if (parseButton && urlInput) {
-        parseButton.addEventListener('click', async function() {
-            const url = urlInput.value.trim();
-            
-            if (!url) {
-                alert('Будь ласка, введіть URL');
+async function postJson(url, body) {
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            'X-CSRF-TOKEN': csrfToken(),
+        },
+        body: JSON.stringify(body),
+    });
+
+    return response.json();
+}
+
+function showImagePreview(src) {
+    const container = document.getElementById('image-preview-container');
+    const preview = document.getElementById('image-preview');
+
+    if (!container || !preview) {
+        return;
+    }
+
+    preview.src = src;
+    container.classList.remove('hidden');
+}
+
+// Автозаповнення бажання з посилання на товар
+function initUrlParser() {
+    const urlInput = document.getElementById('wish-url');
+    const button = document.getElementById('parse-url-btn');
+    const status = document.getElementById('parse-status');
+
+    if (!urlInput || !button) {
+        return;
+    }
+
+    const label = button.querySelector('[data-label]');
+    const defaultHint = status?.textContent;
+
+    const setStatus = (text, tone = 'hint') => {
+        if (!status) {
+            return;
+        }
+
+        status.textContent = text;
+        status.className = tone === 'error' ? 'field-error' : 'field-hint';
+    };
+
+    const fillIfEmpty = (id, value) => {
+        const input = document.getElementById(id);
+
+        if (input && value && !input.value) {
+            input.value = value;
+        }
+    };
+
+    button.addEventListener('click', async () => {
+        const url = urlInput.value.trim();
+
+        if (!url) {
+            setStatus('Спершу вставте посилання на товар.', 'error');
+            urlInput.focus();
+            return;
+        }
+
+        button.disabled = true;
+        label.textContent = 'Шукаю…';
+        setStatus('Завантажую дані зі сторінки товару…');
+
+        try {
+            const result = await postJson('/api/parse-url', { url });
+
+            if (!result.success) {
+                setStatus(result.message || 'Не вдалося прочитати цю сторінку. Заповніть поля вручну.', 'error');
                 return;
             }
 
-            // Show loading
-            if (loadingIndicator) {
-                loadingIndicator.classList.remove('hidden');
-            }
-            parseButton.disabled = true;
-            parseButton.textContent = 'Завантаження...';
+            const data = result.data;
+            fillIfEmpty('wish-title', data.title);
+            fillIfEmpty('wish-description', data.description);
+            fillIfEmpty('wish-price', data.price);
 
-            try {
-                // Parse URL metadata
-                const response = await fetch('/api/parse-url', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                    },
-                    body: JSON.stringify({ url: url })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    const data = result.data;
-                    
-                    // Fill form fields
-                    if (data.title && titleInput && !titleInput.value) {
-                        titleInput.value = data.title;
-                    }
-                    
-                    if (data.description && descriptionInput && !descriptionInput.value) {
-                        descriptionInput.value = data.description;
-                    }
-                    
-                    if (data.price && priceInput && !priceInput.value) {
-                        priceInput.value = data.price;
-                    }
-                    
-                    if (data.currency && currencyInput) {
-                        currencyInput.value = data.currency;
-                    }
-                    
-                    // Download and save image
-                    if (data.image_url) {
-                        await downloadImage(data.image_url);
-                    }
-                } else {
-                    alert('Помилка парсингу URL: ' + result.message);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Помилка при обробці URL: ' + error.message);
-            } finally {
-                if (loadingIndicator) {
-                    loadingIndicator.classList.add('hidden');
-                }
-                parseButton.disabled = false;
-                parseButton.textContent = '🔍 Автозаповнення';
-            }
-        });
-    }
-
-    async function downloadImage(imageUrl) {
-        try {
-            const response = await fetch('/api/download-image', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                },
-                body: JSON.stringify({ image_url: imageUrl })
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                if (imagePathInput) {
-                    imagePathInput.value = result.path;
-                }
-                
-                if (imagePreview) {
-                    imagePreview.src = result.url;
-                    imagePreview.classList.remove('hidden');
-                    const previewContainer = document.getElementById('image-preview-container');
-                    if (previewContainer) {
-                        previewContainer.classList.remove('hidden');
-                    }
+            if (data.currency) {
+                const currency = document.querySelector(`input[name="currency"][value="${data.currency}"]`);
+                if (currency) {
+                    currency.checked = true;
                 }
             }
+
+            if (data.image_url) {
+                const image = await postJson('/api/download-image', { image_url: data.image_url }).catch(() => null);
+
+                if (image?.success) {
+                    document.getElementById('wish-image-path').value = image.path;
+                    showImagePreview(image.url);
+                }
+            }
+
+            setStatus('Готово. Перевірте поля і збережіть.');
         } catch (error) {
-            console.error('Error downloading image:', error);
+            console.error(error);
+            setStatus('Не вдалося прочитати цю сторінку. Заповніть поля вручну.', 'error');
+        } finally {
+            button.disabled = false;
+            label.textContent = 'Заповнити';
         }
-    }
+    });
 
-    // Image upload preview
-    const imageInput = document.getElementById('wish-image');
-    if (imageInput) {
-        imageInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    if (imagePreview) {
-                        imagePreview.src = e.target.result;
-                        imagePreview.classList.remove('hidden');
-                        const previewContainer = document.getElementById('image-preview-container');
-                        if (previewContainer) {
-                            previewContainer.classList.remove('hidden');
-                        }
-                    }
-                };
-                reader.readAsDataURL(file);
+    urlInput.addEventListener('input', () => setStatus(defaultHint));
+}
+
+// Прев'ю вибраного файлу (фото бажання, аватар)
+function initFilePreviews() {
+    const wishImage = document.getElementById('wish-image');
+
+    wishImage?.addEventListener('change', () => {
+        const file = wishImage.files[0];
+        if (file) {
+            showImagePreview(URL.createObjectURL(file));
+        }
+    });
+
+    document.querySelectorAll('input[type="file"][data-preview]').forEach((input) => {
+        input.addEventListener('change', () => {
+            const file = input.files[0];
+            const target = document.getElementById(input.dataset.preview);
+
+            if (file && target) {
+                target.src = URL.createObjectURL(file);
+                target.classList.remove('hidden');
             }
         });
-    }
+    });
+}
+
+// Тости зникають самі; натискання ховає одразу
+function initToasts() {
+    document.querySelectorAll('[data-toast]').forEach((toast) => {
+        const dismiss = () => {
+            if (toast.hasAttribute('data-leaving')) {
+                return;
+            }
+
+            toast.setAttribute('data-leaving', '');
+            setTimeout(() => toast.remove(), 250);
+        };
+
+        const timer = setTimeout(dismiss, toast.querySelector('.text-danger') ? 6000 : 3500);
+
+        toast.addEventListener('click', () => {
+            clearTimeout(timer);
+            dismiss();
+        });
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initUrlParser();
+    initFilePreviews();
+    initToasts();
 });

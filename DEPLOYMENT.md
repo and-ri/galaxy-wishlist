@@ -122,10 +122,6 @@ MAIL_FROM_NAME="${APP_NAME}"
 GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your-client-secret
 GOOGLE_REDIRECT_URI="${APP_URL}/auth/google/callback"
-
-# Admin credentials
-ADMIN_EMAIL=admin@example.com
-ADMIN_PASSWORD=your-secure-admin-password
 ```
 
 ### Генерація ключа та міграції:
@@ -139,9 +135,6 @@ php artisan storage:link
 
 # Міграції бази даних
 php artisan migrate --force
-
-# Створення admin користувача
-php artisan db:seed --class=AdminUserSeeder
 
 # Оптимізація для production
 php artisan config:cache
@@ -286,7 +279,7 @@ sudo crontab -e -u www-data
 ## Крок 10: Перевірка
 
 1. Відкрийте браузер і перейдіть на https://your-domain.com
-2. Перевірте логін адміна: https://your-domain.com/admin/login
+2. Перевірте вхід через Google: https://your-domain.com/login
 3. Перевірте завантаження зображень
 4. Перевірте функцію автозаповнення з URL
 

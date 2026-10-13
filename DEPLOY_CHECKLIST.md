@@ -35,7 +35,6 @@
 - [ ] Виконано `php artisan key:generate`
 - [ ] Виконано `php artisan storage:link`
 - [ ] Виконано `php artisan migrate --force`
-- [ ] Виконано `php artisan db:seed --class=AdminUserSeeder`
 - [ ] Виконано `php artisan optimize`
 
 ### 5. Права доступу

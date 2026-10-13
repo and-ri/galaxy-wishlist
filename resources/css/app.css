@@ -5,7 +5,644 @@
 @source '../**/*.blade.php';
 @source '../**/*.js';
 
+/*
+|--------------------------------------------------------------------------
+| Токени
+|--------------------------------------------------------------------------
+| Кольори — системна палітра Apple (світла / темна). Один акцентний колір,
+| без градієнтів: ієрархію будуємо вагою шрифту, розміром і відступами.
+*/
+
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+        sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+
+    --color-bg: #f5f5f7;
+    --color-surface: #ffffff;
+    --color-raised: #ffffff;
+    --color-fill: rgb(118 118 128 / 0.12);
+    --color-fill-strong: rgb(118 118 128 / 0.2);
+    --color-label: #1d1d1f;
+    --color-secondary: #6e6e73;
+    --color-tertiary: #aeaeb2;
+    --color-separator: rgb(60 60 67 / 0.14);
+    --color-accent: #5856d6;
+    --color-accent-hover: #4a48c4;
+    --color-danger: #ff3b30;
+    --color-success: #34c759;
+    --color-warning: #ff9500;
+
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --color-bg: #000000;
+        --color-surface: #1c1c1e;
+        --color-raised: #2c2c2e;
+        --color-fill: rgb(118 118 128 / 0.24);
+        --color-fill-strong: rgb(118 118 128 / 0.36);
+        --color-label: #f5f5f7;
+        --color-secondary: #98989d;
+        --color-tertiary: #636366;
+        --color-separator: rgb(84 84 88 / 0.55);
+        --color-accent: #7d7aff;
+        --color-accent-hover: #918eff;
+        --color-danger: #ff453a;
+        --color-success: #30d158;
+        --color-warning: #ff9f0a;
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| База (mobile-native)
+|--------------------------------------------------------------------------
+*/
+
+@layer base {
+    html {
+        color-scheme: light dark;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-text-size-adjust: 100%;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+    }
+
+    body {
+        background: var(--color-bg);
+        color: var(--color-label);
+        font-size: 16px;
+        line-height: 1.5;
+    }
+
+    a,
+    button,
+    label,
+    [role='button'] {
+        touch-action: manipulation;
+    }
+
+    button,
+    [role='button'],
+    .btn,
+    .tab {
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
+    /* iOS зумить сторінку на полях з шрифтом < 16px */
+    input,
+    textarea,
+    select {
+        font-size: 16px;
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+    }
+
+    ::selection {
+        background: color-mix(in srgb, var(--color-accent) 24%, transparent);
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Типографіка — трекінг залежить від розміру
+|--------------------------------------------------------------------------
+*/
+
+@layer components {
+    .text-large-title {
+        font-size: 2.125rem; /* 34px — iOS Large Title */
+        line-height: 1.12;
+        font-weight: 700;
+        letter-spacing: -0.026em;
+    }
+
+    .text-title {
+        font-size: 1.375rem; /* 22px */
+        line-height: 1.25;
+        font-weight: 600;
+        letter-spacing: -0.018em;
+    }
+
+    .text-headline {
+        font-size: 1.0625rem; /* 17px */
+        line-height: 1.35;
+        font-weight: 600;
+        letter-spacing: -0.012em;
+    }
+
+    .text-footnote {
+        font-size: 0.8125rem; /* 13px */
+        line-height: 1.4;
+        letter-spacing: 0.002em;
+    }
+
+    @media (min-width: 768px) {
+        .text-large-title {
+            font-size: 2.5rem;
+        }
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Поверхні
+|--------------------------------------------------------------------------
+*/
+
+@layer components {
+    .card {
+        background: var(--color-surface);
+        border-radius: 22px;
+        box-shadow:
+            0 0 0 0.5px rgb(0 0 0 / 0.04),
+            0 1px 2px rgb(0 0 0 / 0.04),
+            0 4px 16px -6px rgb(0 0 0 / 0.06);
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .card {
+            box-shadow: inset 0 0 0 0.5px rgb(255 255 255 / 0.06);
+        }
+    }
+
+    /* Матеріал: напівпрозорий шар, контент прокручується під ним */
+    .glass {
+        background: color-mix(in srgb, var(--color-bg) 72%, transparent);
+        -webkit-backdrop-filter: saturate(180%) blur(20px);
+        backdrop-filter: saturate(180%) blur(20px);
+    }
+
+    @media (prefers-reduced-transparency: reduce) {
+        .glass {
+            background: var(--color-bg);
+            -webkit-backdrop-filter: none;
+            backdrop-filter: none;
+        }
+    }
+
+    /* Inset grouped list (як у Налаштуваннях iOS) */
+    .list {
+        background: var(--color-surface);
+        border-radius: 18px;
+        overflow: hidden;
+    }
+
+    .list-row {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 0.875rem;
+        min-height: 3.25rem;
+        padding: 0.625rem 1rem;
+    }
+
+    .list-row + .list-row::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        left: var(--inset, 1rem);
+        height: 1px;
+        background: var(--color-separator);
+        transform: scaleY(0.5);
+        transform-origin: top;
+    }
+
+    a.list-row {
+        transition: background-color 150ms ease;
+    }
+
+    a.list-row:active {
+        background: var(--color-fill);
+        transition-duration: 0ms;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+        a.list-row:hover {
+            background: color-mix(in srgb, var(--color-fill) 50%, transparent);
+        }
+    }
+
+    .section-header {
+        padding: 0 1rem 0.5rem;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: var(--color-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Кнопки — фідбек на натискання, не на відпускання
+|--------------------------------------------------------------------------
+*/
+
+@layer components {
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        height: 2.75rem;
+        padding: 0 1.25rem;
+        border-radius: 999px;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        white-space: nowrap;
+        cursor: pointer;
+        transition:
+            transform 160ms var(--ease-out),
+            background-color 150ms ease,
+            opacity 150ms ease;
+    }
+
+    .btn:active {
+        transform: scale(0.97);
+        transition-duration: 100ms;
+    }
+
+    .btn:disabled {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+
+    .btn-primary {
+        background: var(--color-accent);
+        color: #fff;
+    }
+
+    .btn-secondary {
+        background: var(--color-fill);
+        color: var(--color-label);
+    }
+
+    .btn-tinted {
+        background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+        color: var(--color-accent);
+    }
+
+    .btn-danger {
+        background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+        color: var(--color-danger);
+    }
+
+    .btn-plain {
+        background: transparent;
+        color: var(--color-accent);
+        padding: 0 0.5rem;
+    }
+
+    .btn-sm {
+        height: 2.125rem;
+        padding: 0 0.875rem;
+        font-size: 0.875rem;
+    }
+
+    .btn-lg {
+        height: 3.25rem;
+        padding: 0 1.75rem;
+        font-size: 1.0625rem;
+    }
+
+    .btn-icon {
+        width: 2.125rem;
+        height: 2.125rem;
+        padding: 0;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+        .btn-primary:hover {
+            background: var(--color-accent-hover);
+        }
+
+        .btn-secondary:hover {
+            background: var(--color-fill-strong);
+        }
+
+        .btn-tinted:hover {
+            background: color-mix(in srgb, var(--color-accent) 18%, transparent);
+        }
+
+        .btn-danger:hover {
+            background: color-mix(in srgb, var(--color-danger) 18%, transparent);
+        }
+
+        .btn-plain:hover {
+            opacity: 0.7;
+        }
+    }
+
+    .pressable {
+        transition: transform 160ms var(--ease-out);
+    }
+
+    .pressable:active {
+        transform: scale(0.98);
+        transition-duration: 100ms;
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Поля форм
+|--------------------------------------------------------------------------
+*/
+
+@layer components {
+    .field {
+        display: block;
+        width: 100%;
+        padding: 0.75rem 0.875rem;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        background: var(--color-fill);
+        color: var(--color-label);
+        line-height: 1.4;
+        transition:
+            background-color 150ms ease,
+            border-color 150ms ease,
+            box-shadow 150ms ease;
+    }
+
+    .field::placeholder {
+        color: var(--color-tertiary);
+    }
+
+    .field:focus {
+        outline: none;
+        background: var(--color-surface);
+        border-color: var(--color-accent);
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-accent) 18%, transparent);
+    }
+
+    .field[aria-invalid='true'] {
+        border-color: var(--color-danger);
+    }
+
+    textarea.field {
+        resize: vertical;
+        min-height: 6rem;
+    }
+
+    .field-label {
+        display: block;
+        margin: 0 0 0.375rem 0.25rem;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: var(--color-secondary);
+    }
+
+    .field-hint {
+        margin: 0.375rem 0 0 0.25rem;
+        font-size: 0.8125rem;
+        color: var(--color-secondary);
+    }
+
+    .field-error {
+        margin: 0.375rem 0 0 0.25rem;
+        font-size: 0.8125rem;
+        color: var(--color-danger);
+    }
+
+    /* Сегментований перемикач; індикатор їде під обраний сегмент */
+    .segmented {
+        --segments: 3;
+        position: relative;
+        display: grid;
+        grid-auto-columns: 1fr;
+        grid-auto-flow: column;
+        padding: 2px;
+        border-radius: 10px;
+        background: var(--color-fill);
+    }
+
+    .segmented::before {
+        content: '';
+        position: absolute;
+        top: 2px;
+        bottom: 2px;
+        left: 2px;
+        width: calc((100% - 4px) / var(--segments));
+        border-radius: 8px;
+        background: var(--color-surface);
+        box-shadow:
+            0 3px 8px rgb(0 0 0 / 0.12),
+            0 3px 1px rgb(0 0 0 / 0.04);
+        transition: transform 280ms var(--ease-drawer);
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .segmented::before {
+            background: #636366;
+        }
+    }
+
+    .segmented:has(input:nth-of-type(2):checked)::before {
+        transform: translateX(100%);
+    }
+
+    .segmented:has(input:nth-of-type(3):checked)::before {
+        transform: translateX(200%);
+    }
+
+    .segmented input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .segmented label {
+        position: relative;
+        z-index: 1;
+        padding: 0.4375rem 0.5rem;
+        text-align: center;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--color-label);
+        cursor: pointer;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
+    .segmented input:checked + label {
+        font-weight: 600;
+    }
+
+    .segmented input:focus-visible + label {
+        border-radius: 8px;
+        outline: 2px solid var(--color-accent);
+        outline-offset: -2px;
+    }
+
+    /* Тумблер iOS */
+    .switch {
+        appearance: none;
+        position: relative;
+        flex-shrink: 0;
+        width: 51px;
+        height: 31px;
+        border-radius: 999px;
+        background: var(--color-fill-strong);
+        cursor: pointer;
+        transition: background-color 200ms ease;
+    }
+
+    .switch::before {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 27px;
+        height: 27px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow:
+            0 3px 8px rgb(0 0 0 / 0.15),
+            0 3px 1px rgb(0 0 0 / 0.06);
+        transition: transform 280ms var(--ease-drawer);
+    }
+
+    .switch:checked {
+        background: var(--color-success);
+    }
+
+    .switch:checked::before {
+        transform: translateX(20px);
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Навігація
+|--------------------------------------------------------------------------
+*/
+
+@layer components {
+    .topbar {
+        padding-top: env(safe-area-inset-top);
+        box-shadow: 0 0.5px 0 var(--color-separator);
+    }
+
+    .nav-link {
+        padding: 0.375rem 0.875rem;
+        border-radius: 999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--color-secondary);
+        transition:
+            color 150ms ease,
+            background-color 150ms ease;
+    }
+
+    .nav-link[aria-current='page'] {
+        background: var(--color-fill);
+        color: var(--color-label);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+        .nav-link:hover {
+            color: var(--color-label);
+        }
+    }
+
+    .tabbar {
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        box-shadow: 0 -0.5px 0 var(--color-separator);
+    }
+
+    .tab {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        padding: 0.4375rem 0 0.375rem;
+        font-size: 0.625rem;
+        font-weight: 500;
+        letter-spacing: 0.01em;
+        color: var(--color-secondary);
+        -webkit-touch-callout: none;
+    }
+
+    .tab[aria-current='page'] {
+        color: var(--color-accent);
+    }
+
+    .tab svg {
+        transition: transform 160ms var(--ease-out);
+    }
+
+    .tab:active svg {
+        transform: scale(0.88);
+        transition-duration: 100ms;
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Тост — з'являється згори і туди ж іде
+|--------------------------------------------------------------------------
+*/
+
+@layer components {
+    .toast {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        transition:
+            opacity 300ms var(--ease-out),
+            transform 400ms var(--ease-drawer);
+    }
+
+    @starting-style {
+        .toast {
+            opacity: 0;
+            transform: translateY(-12px) scale(0.97);
+        }
+    }
+
+    .toast[data-leaving] {
+        opacity: 0;
+        transform: translateY(-12px) scale(0.97);
+        transition-duration: 200ms;
+    }
+
+    .fade-in {
+        transition: opacity 250ms ease;
+    }
+
+    @starting-style {
+        .fade-in {
+            opacity: 0;
+        }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        transition-property: opacity, color, background-color, border-color !important;
+    }
+
+    .btn:active,
+    .pressable:active,
+    .tab:active svg {
+        transform: none;
+    }
+
+    .toast,
+    .toast[data-leaving] {
+        transform: none;
+    }
 }

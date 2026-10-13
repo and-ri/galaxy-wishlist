@@ -1,52 +1,35 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="text-center py-16">
-    <h1 class="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-indigo-600 mb-6">
-        Galaxy Wishlist
+<section class="flex min-h-[64svh] flex-col items-center justify-center py-10 text-center">
+    <span class="mb-8 flex size-18 items-center justify-center rounded-[22px] bg-accent text-white shadow-[0_12px_32px_-8px_var(--color-accent)]">
+        <x-icon name="gift" :size="38" :stroke="1.5" />
+    </span>
+
+    <h1 class="max-w-3xl text-[clamp(2.5rem,7vw,4.5rem)] leading-[1.04] font-bold tracking-[-0.035em]">
+        Подарунки, які&nbsp;справді хочуть&nbsp;отримати.
     </h1>
-    <p class="text-2xl text-gray-600 mb-8 max-w-2xl mx-auto">
-        Створюйте та діліться своїми бажаннями з друзями і близькими
+
+    <p class="mt-5 max-w-xl text-[1.1875rem] leading-relaxed text-secondary">
+        Складіть свій вішліст за хвилину. Колеги побачать, що вам подарувати, і&nbsp;отримають нагадування перед днем народження.
     </p>
 
-    @auth
-        <a href="{{ route('wishes.index') }}" class="inline-block px-10 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xl font-semibold rounded-full hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-purple-300 transition transform hover:scale-105 shadow-2xl">
-            ✨ Мої бажання
-        </a>
-    @else
-        <a href="{{ route('login') }}" class="inline-block px-10 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xl font-semibold rounded-full hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-purple-300 transition transform hover:scale-105 shadow-2xl">
-            🚀 Увійти
-        </a>
-    @endauth
-</div>
+    <a href="{{ route('login') }}" class="btn btn-primary btn-lg mt-9">Почати</a>
+</section>
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
-    <div class="bg-white rounded-2xl shadow-xl p-8 text-center hover:shadow-2xl transition-shadow duration-300 transform hover:-translate-y-2">
-        <div class="text-6xl mb-4">✨</div>
-        <h3 class="text-2xl font-bold text-purple-600 mb-3">Створюйте бажання</h3>
-        <p class="text-gray-600 leading-relaxed">Додавайте свої мрії з описом, фото, посиланням та ціною. Автоматичне заповнення з URL!</p>
-    </div>
-
-    <div class="bg-white rounded-2xl shadow-xl p-8 text-center hover:shadow-2xl transition-shadow duration-300 transform hover:-translate-y-2">
-        <div class="text-6xl mb-4">👥</div>
-        <h3 class="text-2xl font-bold text-purple-600 mb-3">Діліться з колегами</h3>
-        <p class="text-gray-600 leading-relaxed">Переглядайте бажання інших користувачів і дізнавайтеся, що їм подарувати</p>
-    </div>
-
-    <div class="bg-white rounded-2xl shadow-xl p-8 text-center hover:shadow-2xl transition-shadow duration-300 transform hover:-translate-y-2">
-        <div class="text-6xl mb-4">🔒</div>
-        <h3 class="text-2xl font-bold text-purple-600 mb-3">Безпечний вхід</h3>
-        <p class="text-gray-600 leading-relaxed">Авторизація через Google для захисту ваших даних</p>
-    </div>
-</div>
-
-@auth
-<div class="mt-16 bg-gradient-to-r from-purple-100 to-indigo-100 rounded-2xl p-8 text-center">
-    <h2 class="text-3xl font-bold text-gray-800 mb-4">Готові почати?</h2>
-    <p class="text-xl text-gray-600 mb-6">Додайте своє перше бажання прямо зараз!</p>
-    <a href="{{ route('wishes.create') }}" class="inline-block px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-indigo-700 transition transform hover:scale-105 shadow-lg">
-        ➕ Додати бажання
-    </a>
-</div>
-@endauth
+<section class="mx-auto grid max-w-4xl gap-8 border-t border-separator pt-12 sm:grid-cols-3 sm:gap-10">
+    @foreach ([
+        ['icon' => 'link', 'title' => 'Вставте посилання', 'text' => 'Назва, ціна і фото товару підтягнуться самі.'],
+        ['icon' => 'bell', 'title' => 'Нагадаємо вчасно', 'text' => 'Лист за тиждень до свята — і вам, і колегам.'],
+        ['icon' => 'gift', 'title' => 'Усе в одному місці', 'text' => 'Ціни, посилання і фото: колегам не доведеться гадати.'],
+    ] as $feature)
+        <div>
+            <span class="flex size-10 items-center justify-center rounded-xl bg-accent/10 text-accent">
+                <x-icon :name="$feature['icon']" :size="22" />
+            </span>
+            <h2 class="text-headline mt-4">{{ $feature['title'] }}</h2>
+            <p class="mt-1 text-[0.9375rem] leading-relaxed text-secondary">{{ $feature['text'] }}</p>
+        </div>
+    @endforeach
+</section>
 @endsection

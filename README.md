@@ -43,7 +43,6 @@ php artisan key:generate
 # База даних
 touch database/database.sqlite
 php artisan migrate
-php artisan db:seed --class=AdminUserSeeder
 
 # Storage
 php artisan storage:link
@@ -67,14 +66,6 @@ composer run dev
 ### Чеклист деплою
 
 Використовуйте [DEPLOY_CHECKLIST.md](DEPLOY_CHECKLIST.md) для перевірки всіх кроків.
-
-## 🔑 Локальний вхід (для розробки)
-
-Для локального тестування без Google OAuth:
-
-- URL: `/admin/login`
-- Email: `admin@example.com`
-- Password: `password`
 
 ## 🔧 Налаштування Google OAuth
 
@@ -132,9 +123,7 @@ resources/
 └── lang/uk/                     # Українська локалізація
 
 database/
-├── migrations/                  # Міграції БД
-└── seeders/
-    └── AdminUserSeeder.php      # Створення адмін користувача
+└── migrations/                  # Міграції БД
 ```
 
 ## 🛠️ Розробка
@@ -150,7 +139,6 @@ User::create([
     'name' => 'Ім\'я',
     'email' => 'email@example.com',
     'password' => Hash::make('password'),
-    'is_admin' => false,
 ]);
 ```
 

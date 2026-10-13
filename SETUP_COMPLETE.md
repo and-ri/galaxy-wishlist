@@ -13,20 +13,19 @@
    - Timezone: Europe/Kyiv
 
 3. ✅ **Система авторизації**
-   - Локальний вхід для адміна (/admin/login)
    - OAuth2 інтеграція з Google
    - Laravel Socialite (google driver)
    - Policy для контролю доступу до wishes
 
 4. ✅ **Контролери та маршрути**
-   - AuthController (локальний вхід + Google)
+   - AuthController (вхід через Google)
    - WishController (CRUD для бажань)
    - ProfileController (редагування профілю, завантаження аватара)
    - UserController (список користувачів, перегляд чужих бажань)
 
 5. ✅ **Frontend (Blade views)**
    - Головна сторінка (home)
-   - Авторизація (login, admin-login)
+   - Авторизація (login)
    - Wishes (index, create, edit)
    - Users (index, show)
    - Profile (edit)
@@ -39,14 +38,12 @@
 7. ✅ **Документація**
    - Детальний README з інструкціями
    - .env.example з Google OAuth конфігурацією
-   - AdminUserSeeder (admin@example.com / password)
 
 ## 🚀 Швидкий старт:
 
-### 1. Якщо ще не запускали міграції та seeder:
+### 1. Якщо ще не запускали міграції:
 ```bash
 php artisan migrate
-php artisan db:seed --class=AdminUserSeeder
 php artisan storage:link
 ```
 
@@ -57,9 +54,7 @@ php artisan serve
 
 ### 3. Доступ:
 - Головна: http://localhost:8000
-- Локальний вхід: http://localhost:8000/admin/login
-  - Email: admin@example.com
-  - Password: password
+- Вхід: http://localhost:8000/login (через Google)
 
 ---
 
@@ -172,7 +167,6 @@ php artisan config:clear
 ### Помилка з базою даних:
 ```bash
 php artisan migrate:fresh
-php artisan db:seed --class=AdminUserSeeder
 ```
 
 ### Помилка з storage:
@@ -186,7 +180,7 @@ chmod -R 775 storage
 ```
 app/
 ├── Http/Controllers/
-│   ├── AuthController.php       # Google OAuth + локальний вхід
+│   ├── AuthController.php       # Google OAuth
 │   ├── WishController.php       # Бажання (CRUD)
 │   ├── ProfileController.php    # Профіль + аватар + birthday + delivery_address
 │   ├── UserController.php       # Список користувачів
@@ -203,7 +197,7 @@ resources/
 ├── views/
 │   ├── layouts/app.blade.php    # 🆕 Tailwind CSS layout
 │   ├── home.blade.php           # 🆕 Оновлена головна з градієнтами
-│   ├── auth/                    # login, admin-login
+│   ├── auth/                    # login
 │   ├── wishes/                  # 🆕 Всі з Tailwind + автозаповнення
 │   │   ├── index.blade.php      # Картки з фото
 │   │   ├── create.blade.php     # Форма з автозаповненням
@@ -232,8 +226,6 @@ lang/uk/                         # Українські переклади
 
 Для тестування:
 1. Запустіть `php artisan serve`
-2. Відкрийте http://localhost:8000/admin/login
-3. Увійдіть як admin@example.com / password
+2. Налаштуйте Google OAuth (`GOOGLE_*` у `.env`)
+3. Відкрийте http://localhost:8000/login і увійдіть через Google
 4. Почніть додавати бажання!
-
-Коли налаштуєте Google OAuth - користувачі зможуть входити через Google.

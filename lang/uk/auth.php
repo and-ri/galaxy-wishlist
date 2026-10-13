@@ -9,7 +9,6 @@ return [
     'email' => 'Email',
     'name' => 'Ім\'я',
     'remember' => 'Запам\'ятати мене',
-    'admin_login' => 'Локальний вхід для адміністратора',
     'login_with_google' => 'Увійти через Google',
     'google_failed' => 'Помилка авторизації через Google:',
     'google_no_email' => 'Google не повернув email. Дозвольте доступ до email і спробуйте ще раз.',

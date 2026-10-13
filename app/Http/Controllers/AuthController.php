@@ -13,37 +13,6 @@ use Laravel\Socialite\Facades\Socialite;
 class AuthController extends Controller
 {
     /**
-     * Показати форму локального входу для адміна
-     */
-    public function showAdminLogin()
-    {
-        return view('auth.admin-login');
-    }
-
-    /**
-     * Локальний вхід для адміна (тільки для розробки)
-     */
-    public function adminLogin(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
-
-        $credentials = $request->only('email', 'password');
-
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            $request->session()->regenerate();
-
-            return redirect()->intended('/');
-        }
-
-        return back()->withErrors([
-            'email' => __('auth.failed'),
-        ])->onlyInput('email');
-    }
-
-    /**
      * Перенаправлення на Google для авторизації
      */
     public function redirectToGoogle()

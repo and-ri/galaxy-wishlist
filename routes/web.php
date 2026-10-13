@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UrlParserController;
 use App\Http\Controllers\UserController;
@@ -8,15 +9,11 @@ use App\Http\Controllers\WishController;
 use Illuminate\Support\Facades\Route;
 
 // Головна сторінка
-Route::get('/', function () {
-    return view('home');
-})->name('home');
+Route::get('/', HomeController::class)->name('home');
 
 // Авторизація
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::get('/admin/login', [AuthController::class, 'showAdminLogin'])->name('admin.login');
-    Route::post('/admin/login', [AuthController::class, 'adminLogin'])->name('admin.login.post');
     Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('auth.google');
     Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback'])->name('auth.google.callback');
 });

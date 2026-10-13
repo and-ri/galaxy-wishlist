@@ -3,10 +3,13 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 class User extends Authenticatable
@@ -90,5 +93,42 @@ class User extends Authenticatable
     public function wishes()
     {
         return $this->hasMany(Wish::class);
+    }
+
+    /**
+     * Найближчий день народження, починаючи з $from (включно).
+     *
+     * Для народжених 29 лютого в невисокосні роки повертає 28 лютого.
+     */
+    public function nextBirthday(CarbonInterface $from): ?Carbon
+    {
+        if (! $this->birthday) {
+            return null;
+        }
+
+        $from = Carbon::instance($from)->startOfDay();
+        $next = $this->birthdayInYear($from->year);
+
+        return $next->lt($from) ? $this->birthdayInYear($from->year + 1) : $next;
+    }
+
+    private function birthdayInYear(int $year): Carbon
+    {
+        $month = $this->birthday->month;
+        $day = $this->birthday->day;
+
+        if ($month === 2 && $day === 29 && ! Carbon::create($year)->isLeapYear()) {
+            $day = 28;
+        }
+
+        return Carbon::create($year, $month, $day)->startOfDay();
+    }
+
+    /**
+     * Користувачі, яким надсилаються нагадування (без службових адмінів).
+     */
+    public function scopeReminderRecipients(Builder $query): void
+    {
+        $query->where('is_admin', false)->whereNotNull('email');
     }
 }

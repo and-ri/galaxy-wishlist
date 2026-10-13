@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
@@ -12,7 +11,8 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = User::orderBy('name')->get();
+        $users = User::withCount('wishes')->orderBy('name')->get();
+
         return view('users.index', compact('users'));
     }
 
@@ -22,6 +22,7 @@ class UserController extends Controller
     public function show(User $user)
     {
         $wishes = $user->wishes()->latest()->get();
+
         return view('users.show', compact('user', 'wishes'));
     }
 }
