@@ -8,6 +8,14 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
+# Панель запускає скрипт, навіть якщо git pull не вдався. Не деплоїмо старий код мовчки.
+if UPSTREAM="$(git rev-parse '@{u}' 2>/dev/null)" && [ "$(git rev-parse HEAD)" != "$UPSTREAM" ]; then
+    echo "❌ Код не оновився: HEAD $(git rev-parse --short HEAD), а в origin вже $(git rev-parse --short "$UPSTREAM")."
+    echo "   Найчастіше заважають локальні зміни на сервері:"
+    git status --short --untracked-files=no
+    exit 1
+fi
+
 # Якщо будь-який крок упав — повертаємо сайт з maintenance mode і завершуємось з помилкою,
 # щоб у лозі панелі було видно, що деплой не вдався
 trap 'echo "❌ Деплой зупинено через помилку (рядок $LINENO)"; php artisan up || true; exit 1' ERR
